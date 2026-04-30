@@ -30,6 +30,32 @@
       </div>
     </section>
 
+    <section class="cards">
+  <div class="card">
+    <h2>Asset Allocation</h2>
+    <div id="allocationList"></div>
+  </div>
+
+  <div class="card">
+    <h2>Watchlist</h2>
+    <input id="watchInput" placeholder="z.B. AAPL, MSFT, VWCE" />
+    <button onclick="addWatchItem()">Add</button>
+    <ul id="watchList"></ul>
+  </div>
+</section>
+
+    <section class="add-asset">
+  <h2>Add Asset</h2>
+
+  <input id="name" placeholder="Name (ETF / Stock)" />
+  <input id="type" placeholder="Type" />
+  <input id="isin" placeholder="ISIN" />
+  <input id="invested" type="number" placeholder="Invested €" />
+  <input id="current" type="number" placeholder="Current Value €" />
+
+  <button onclick="addAsset()">Add</button>
+</section>
+
     <section class="portfolio">
       <h2>Portfolio</h2>
       <div id="portfolioList"></div>

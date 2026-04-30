@@ -55,12 +55,66 @@ header h1 {
   align-items: center;
 }
 
+.add-asset {
+  margin-bottom: 30px;
+  display: grid;
+  gap: 10px;
+}
+
+.add-asset input {
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+}
+
+.add-asset button {
+  padding: 12px;
+  background: #22c55e;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
 .positive {
   color: #22c55e;
 }
 
 .negative {
   color: #ef4444;
+}
+
+#allocationList div {
+  margin-bottom: 12px;
+}
+
+.allocation-bar {
+  height: 10px;
+  background: #334155;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.allocation-fill {
+  height: 100%;
+  background: #22c55e;
+}
+
+#watchInput {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  margin-bottom: 10px;
+}
+
+.card button,
+.asset button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
 }
 
 @media (max-width: 768px) {
