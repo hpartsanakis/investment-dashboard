@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Investment Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app">
+    <header>
+      <h1>Investment Dashboard</h1>
+      <p>Portfolio, ETFs, Fonds, Cash & Performance</p>
+    </header>
+
+    <section class="cards">
+      <div class="card">
+        <h2>Gesamtwert</h2>
+        <p id="totalValue">€0</p>
+      </div>
+
+      <div class="card">
+        <h2>Investiert</h2>
+        <p id="totalInvested">€0</p>
+      </div>
+
+      <div class="card">
+        <h2>Gewinn / Verlust</h2>
+        <p id="profitLoss">€0</p>
+      </div>
+    </section>
+
+    <section class="portfolio">
+      <h2>Portfolio</h2>
+      <div id="portfolioList"></div>
+    </section>
+  </main>
+
+  <script src="data.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
