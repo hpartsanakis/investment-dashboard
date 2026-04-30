@@ -12,10 +12,14 @@ const portfolioList = document.getElementById("portfolioList");
 const allocationList = document.getElementById("allocationList");
 const watchList = document.getElementById("watchList");
 
+const bestPerformerElement = document.getElementById("bestPerformer");
+const worstPerformerElement = document.getElementById("worstPerformer");
+const portfolioPerformanceElement = document.getElementById("portfolioPerformance");
+
 function formatEuro(value) {
   return value.toLocaleString("de-DE", {
     style: "currency",
-    currency: "EUR",
+    currency: "EUR"
   });
 }
 
@@ -27,14 +31,8 @@ function saveWatchlist() {
   localStorage.setItem("watchlist", JSON.stringify(watchlist));
 }
 
-/* =========================
-   TRANSACTION LOGIC
-========================= */
-
 function getQuantity(item) {
-  if (!item.transactions) {
-    return item.quantity || 0;
-  }
+  if (!item.transactions) return item.quantity || 0;
 
   return item.transactions.reduce((sum, t) => {
     if (t.type === "BUY") return sum + t.quantity;
@@ -44,9 +42,7 @@ function getQuantity(item) {
 }
 
 function getInvestedValue(item) {
-  if (!item.transactions) {
-    return item.quantity * item.buyPrice;
-  }
+  if (!item.transactions) return item.quantity * item.buyPrice;
 
   return item.transactions.reduce((sum, t) => {
     if (t.type === "BUY") return sum + t.quantity * t.price;
@@ -59,9 +55,25 @@ function getCurrentValue(item) {
   return getQuantity(item) * item.currentPrice;
 }
 
-/* =========================
-   API
-========================= */
+function getProfitLoss(item) {
+  return getCurrentValue(item) - getInvestedValue(item);
+}
+
+function getProfitLossPercent(item) {
+  const invested = getInvestedValue(item);
+  if (invested === 0) return 0;
+  return (getProfitLoss(item) / invested) * 100;
+}
+
+function getPortfolioWeight(item) {
+  const totalValue = portfolio.reduce((sum, asset) => {
+    return sum + getCurrentValue(asset);
+  }, 0);
+
+  if (totalValue === 0) return 0;
+
+  return (getCurrentValue(item) / totalValue) * 100;
+}
 
 async function fetchQuote(symbol) {
   const url = `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_API_KEY}`;
@@ -70,27 +82,24 @@ async function fetchQuote(symbol) {
     const res = await fetch(url);
     const data = await res.json();
 
-    if (!data || data.c === 0) throw new Error();
+    if (!data || data.c === 0) throw new Error("Keine Kursdaten gefunden");
 
     return data;
-  } catch {
+  } catch (error) {
+    console.error("API Fehler:", error);
     return null;
   }
 }
 
-/* =========================
-   CALCULATIONS
-========================= */
-
 function calculateTotals() {
-  const totalInvested = portfolio.reduce(
-    (sum, item) => sum + getInvestedValue(item),
-    0,
-  );
-  const totalValue = portfolio.reduce(
-    (sum, item) => sum + getCurrentValue(item),
-    0,
-  );
+  const totalInvested = portfolio.reduce((sum, item) => {
+    return sum + getInvestedValue(item);
+  }, 0);
+
+  const totalValue = portfolio.reduce((sum, item) => {
+    return sum + getCurrentValue(item);
+  }, 0);
+
   const profitLoss = totalValue - totalInvested;
 
   totalInvestedElement.textContent = formatEuro(totalInvested);
@@ -99,10 +108,6 @@ function calculateTotals() {
   profitLossElement.className = profitLoss >= 0 ? "positive" : "negative";
 }
 
-/* =========================
-   PORTFOLIO RENDER
-========================= */
-
 function renderPortfolio() {
   portfolioList.innerHTML = "";
 
@@ -110,7 +115,9 @@ function renderPortfolio() {
     const qty = getQuantity(item);
     const invested = getInvestedValue(item);
     const current = getCurrentValue(item);
-    const profit = current - invested;
+    const profit = getProfitLoss(item);
+    const profitPercent = getProfitLossPercent(item);
+    const weight = getPortfolioWeight(item);
 
     const asset = document.createElement("div");
     asset.className = "asset";
@@ -119,26 +126,36 @@ function renderPortfolio() {
       <div>
         <strong>${item.name}</strong><br>
         <small>${item.type} · ${item.symbol} · ${item.isin}</small><br>
-        <small>Units: ${qty}</small>
+        <small>Units: ${qty}</small><br>
+        <small>Portfolio Weight: ${weight.toFixed(1)}%</small>
       </div>
 
-      <div>${formatEuro(invested)}</div>
-      <div>${formatEuro(current)}</div>
+      <div>
+        <small>Investiert</small><br>
+        ${formatEuro(invested)}
+      </div>
+
+      <div>
+        <small>Aktueller Wert</small><br>
+        ${formatEuro(current)}<br>
+        <small>Preis: ${formatEuro(item.currentPrice)}</small>
+      </div>
 
       <div class="${profit >= 0 ? "positive" : "negative"}">
-        ${formatEuro(profit)}
+        <small>Gewinn / Verlust</small><br>
+        ${formatEuro(profit)}<br>
+        <small>${profitPercent.toFixed(2)}%</small>
       </div>
 
       <button onclick="startEditAsset(${index})">✏️</button>
-<button onclick="startTransaction(${index})">➕</button>
-<button onclick="toggleHistory(${index})">📜</button>
-<button onclick="updateSingleAssetPrice(${index})">🔄</button>
-<button onclick="deleteAsset(${index})">❌</button>
+      <button onclick="startTransaction(${index})">➕</button>
+      <button onclick="toggleHistory(${index})">📜</button>
+      <button onclick="updateSingleAssetPrice(${index})">🔄</button>
+      <button onclick="deleteAsset(${index})">❌</button>
     `;
 
     portfolioList.appendChild(asset);
 
-    /* EDIT FORM */
     if (editingIndex === index) {
       const form = document.createElement("div");
       form.className = "edit-form";
@@ -158,7 +175,6 @@ function renderPortfolio() {
       portfolioList.appendChild(form);
     }
 
-    /* TRANSACTION FORM */
     if (transactionIndex === index) {
       const form = document.createElement("div");
       form.className = "edit-form";
@@ -180,47 +196,43 @@ function renderPortfolio() {
 
       portfolioList.appendChild(form);
     }
+
+    if (historyIndex === index) {
+      const history = document.createElement("div");
+      history.className = "transaction-history";
+
+      const transactions = [...(item.transactions || [])].sort((a, b) => {
+        return new Date(b.date) - new Date(a.date);
+      });
+
+      if (transactions.length === 0) {
+        history.innerHTML = `<p>No transactions yet.</p>`;
+      } else {
+        history.innerHTML = `
+          <h3>Transaction History</h3>
+          ${transactions
+            .map((t) => {
+              const originalIndex = item.transactions.indexOf(t);
+
+              return `
+                <div class="transaction-row">
+                  <div class="${t.type === "BUY" ? "buy" : "sell"}">${t.type}</div>
+                  <div>${t.date}</div>
+                  <div>${t.quantity} Units</div>
+                  <div>${formatEuro(t.price)}</div>
+                  <div>${t.note || "-"}</div>
+                  <button onclick="deleteTransaction(${index}, ${originalIndex})">❌</button>
+                </div>
+              `;
+            })
+            .join("")}
+        `;
+      }
+
+      portfolioList.appendChild(history);
+    }
   });
 }
-
-if (historyIndex === index) {
-  const history = document.createElement("div");
-  history.className = "transaction-history";
-
-  const transactions = [...(item.transactions || [])].sort((a, b) => {
-    return new Date(b.date) - new Date(a.date);
-  });
-
-  if (transactions.length === 0) {
-    history.innerHTML = `<p>No transactions yet.</p>`;
-  } else {
-    history.innerHTML = `
-      <h3>Transaction History</h3>
-      ${transactions
-        .map((t) => {
-          const originalIndex = item.transactions.indexOf(t);
-
-          return `
-            <div class="transaction-row">
-              <div class="${t.type === "BUY" ? "buy" : "sell"}">${t.type}</div>
-              <div>${t.date}</div>
-              <div>${t.quantity} Units</div>
-              <div>${formatEuro(t.price)}</div>
-              <div>${t.note || "-"}</div>
-              <button onclick="deleteTransaction(${index}, ${originalIndex})">❌</button>
-            </div>
-          `;
-        })
-        .join("")}
-    `;
-  }
-
-  portfolioList.appendChild(history);
-}
-
-/* =========================
-   EDIT
-========================= */
 
 function startEditAsset(i) {
   editingIndex = i;
@@ -237,21 +249,26 @@ function cancelEditAsset() {
 function saveEditAsset(i) {
   const item = portfolio[i];
 
-  item.name = document.getElementById("editName").value;
-  item.type = document.getElementById("editType").value;
-  item.isin = document.getElementById("editIsin").value;
-  item.symbol = document.getElementById("editSymbol").value.toUpperCase();
+  item.name = document.getElementById("editName").value.trim();
+  item.type = document.getElementById("editType").value.trim();
+  item.isin = document.getElementById("editIsin").value.trim();
+  item.symbol = document.getElementById("editSymbol").value.trim().toUpperCase();
   item.quantity = parseFloat(document.getElementById("editQuantity").value);
   item.buyPrice = parseFloat(document.getElementById("editBuyPrice").value);
+
+  if (!item.name || !item.type || !item.isin || !item.symbol || isNaN(item.quantity) || isNaN(item.buyPrice)) {
+    alert("Bitte alle Felder korrekt ausfüllen.");
+    return;
+  }
+
+  if (!item.currentPrice || isNaN(item.currentPrice)) {
+    item.currentPrice = item.buyPrice;
+  }
 
   editingIndex = null;
   savePortfolio();
   updateDashboard();
 }
-
-/* =========================
-   TRANSACTIONS
-========================= */
 
 function startTransaction(i) {
   transactionIndex = i;
@@ -270,10 +287,10 @@ function saveTransaction(i) {
   const date = document.getElementById("tDate").value;
   const qty = parseFloat(document.getElementById("tQty").value);
   const price = parseFloat(document.getElementById("tPrice").value);
-  const note = document.getElementById("tNote").value;
+  const note = document.getElementById("tNote").value.trim();
 
   if (!date || isNaN(qty) || isNaN(price)) {
-    alert("Fill fields");
+    alert("Bitte Datum, Units und Preis korrekt ausfüllen.");
     return;
   }
 
@@ -286,7 +303,7 @@ function saveTransaction(i) {
     date,
     quantity: qty,
     price,
-    note,
+    note
   });
 
   portfolio[i].currentPrice = price;
@@ -296,11 +313,27 @@ function saveTransaction(i) {
   updateDashboard();
 }
 
-/* =========================
-   OTHER
-========================= */
+function toggleHistory(index) {
+  historyIndex = historyIndex === index ? null : index;
+  editingIndex = null;
+  transactionIndex = null;
+  renderPortfolio();
+}
+
+function deleteTransaction(assetIndex, transactionIndexToDelete) {
+  const confirmDelete = confirm("Diese Transaction wirklich löschen?");
+  if (!confirmDelete) return;
+
+  portfolio[assetIndex].transactions.splice(transactionIndexToDelete, 1);
+
+  savePortfolio();
+  updateDashboard();
+}
 
 function deleteAsset(i) {
+  const confirmDelete = confirm("Dieses Asset wirklich löschen?");
+  if (!confirmDelete) return;
+
   portfolio.splice(i, 1);
   savePortfolio();
   updateDashboard();
@@ -308,27 +341,47 @@ function deleteAsset(i) {
 
 async function updateSingleAssetPrice(i) {
   const q = await fetchQuote(portfolio[i].symbol);
-  if (q) {
-    portfolio[i].currentPrice = q.c;
-    savePortfolio();
-    updateDashboard();
+
+  if (!q) {
+    alert("Keine Kursdaten gefunden. Prüfe Symbol oder API-Key.");
+    return;
   }
+
+  portfolio[i].currentPrice = q.c;
+  savePortfolio();
+  updateDashboard();
+}
+
+async function updateAllPrices() {
+  for (let i = 0; i < portfolio.length; i++) {
+    const q = await fetchQuote(portfolio[i].symbol);
+
+    if (q) {
+      portfolio[i].currentPrice = q.c;
+    }
+  }
+
+  savePortfolio();
+  updateDashboard();
 }
 
 function renderAllocation() {
   allocationList.innerHTML = "";
 
-  const total = portfolio.reduce((s, i) => s + getCurrentValue(i), 0);
+  const total = portfolio.reduce((sum, item) => {
+    return sum + getCurrentValue(item);
+  }, 0);
 
-  portfolio.forEach((i) => {
-    const val = getCurrentValue(i);
-    const pct = total ? (val / total) * 100 : 0;
+  portfolio.forEach((item) => {
+    const value = getCurrentValue(item);
+    const percent = total ? (value / total) * 100 : 0;
 
     const el = document.createElement("div");
+
     el.innerHTML = `
-      ${i.type} - ${pct.toFixed(1)}%
+      <strong>${item.type}</strong> - ${percent.toFixed(1)}%
       <div class="allocation-bar">
-        <div class="allocation-fill" style="width:${pct}%"></div>
+        <div class="allocation-fill" style="width:${percent}%"></div>
       </div>
     `;
 
@@ -336,9 +389,89 @@ function renderAllocation() {
   });
 }
 
-/* =========================
-   WATCHLIST
-========================= */
+function renderAnalysis() {
+  if (portfolio.length === 0) {
+    bestPerformerElement.textContent = "-";
+    worstPerformerElement.textContent = "-";
+    portfolioPerformanceElement.textContent = "0%";
+    return;
+  }
+
+  const totalInvested = portfolio.reduce((sum, item) => {
+    return sum + getInvestedValue(item);
+  }, 0);
+
+  const totalValue = portfolio.reduce((sum, item) => {
+    return sum + getCurrentValue(item);
+  }, 0);
+
+  const totalPerformance =
+    totalInvested > 0 ? ((totalValue - totalInvested) / totalInvested) * 100 : 0;
+
+  const sorted = [...portfolio].sort((a, b) => {
+    return getProfitLossPercent(b) - getProfitLossPercent(a);
+  });
+
+  const best = sorted[0];
+  const worst = sorted[sorted.length - 1];
+
+  bestPerformerElement.textContent = `${best.symbol} ${getProfitLossPercent(best).toFixed(2)}%`;
+  worstPerformerElement.textContent = `${worst.symbol} ${getProfitLossPercent(worst).toFixed(2)}%`;
+
+  portfolioPerformanceElement.textContent = `${totalPerformance.toFixed(2)}%`;
+  portfolioPerformanceElement.className = totalPerformance >= 0 ? "positive" : "negative";
+}
+
+function addAsset() {
+  const nameInput = document.getElementById("name");
+  const typeInput = document.getElementById("type");
+  const isinInput = document.getElementById("isin");
+  const symbolInput = document.getElementById("symbol");
+  const quantityInput = document.getElementById("quantity");
+  const priceInput = document.getElementById("price");
+
+  const name = nameInput.value.trim();
+  const type = typeInput.value.trim();
+  const isin = isinInput.value.trim();
+  const symbol = symbolInput.value.trim().toUpperCase();
+  const quantity = parseFloat(quantityInput.value);
+  const buyPrice = parseFloat(priceInput.value);
+
+  if (!name || !type || !isin || !symbol || isNaN(quantity) || isNaN(buyPrice)) {
+    alert("Bitte alle Felder korrekt ausfüllen.");
+    return;
+  }
+
+  portfolio.push({
+    name,
+    type,
+    isin,
+    symbol,
+    quantity,
+    buyPrice,
+    currentPrice: buyPrice,
+    transactions: [
+      {
+        type: "BUY",
+        date: new Date().toISOString().split("T")[0],
+        quantity,
+        price: buyPrice,
+        note: "Initial buy"
+      }
+    ]
+  });
+
+  savePortfolio();
+
+  nameInput.value = "";
+  typeInput.value = "";
+  isinInput.value = "";
+  symbolInput.value = "";
+  quantityInput.value = "";
+  priceInput.value = "";
+
+  updateDashboard();
+}
 
 function addWatchItem() {
   const input = document.getElementById("watchInput");
@@ -368,44 +501,29 @@ async function renderWatchlist() {
     const li = document.createElement("li");
 
     if (q) {
+      const changeClass = q.dp >= 0 ? "positive" : "negative";
+
       li.innerHTML = `
-        ${symbol} ${q.c} (${q.dp.toFixed(2)}%)
+        <strong>${symbol}</strong> ${q.c}
+        <span class="${changeClass}">(${q.dp.toFixed(2)}%)</span>
         <button onclick="deleteWatchItem(${i})">❌</button>
       `;
     } else {
-      li.innerHTML = `${symbol} no data`;
+      li.innerHTML = `
+        <strong>${symbol}</strong> no data
+        <button onclick="deleteWatchItem(${i})">❌</button>
+      `;
     }
 
     watchList.appendChild(li);
   }
 }
 
-function toggleHistory(index) {
-  historyIndex = historyIndex === index ? null : index;
-  editingIndex = null;
-  transactionIndex = null;
-  renderPortfolio();
-}
-
-function deleteTransaction(assetIndex, transactionIndexToDelete) {
-  const confirmDelete = confirm("Diese Transaction wirklich löschen?");
-
-  if (!confirmDelete) return;
-
-  portfolio[assetIndex].transactions.splice(transactionIndexToDelete, 1);
-
-  savePortfolio();
-  updateDashboard();
-}
-
-/* =========================
-   INIT
-========================= */
-
 function updateDashboard() {
   renderPortfolio();
   calculateTotals();
   renderAllocation();
+  renderAnalysis();
   renderWatchlist();
 }
 
