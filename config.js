@@ -1,0 +1,1 @@
+const FINNHUB_API_KEY = "DEIN_API_KEY_HIER";
