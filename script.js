@@ -1,5 +1,6 @@
 let portfolio = JSON.parse(localStorage.getItem("portfolio")) || [];
 let watchlist = JSON.parse(localStorage.getItem("watchlist")) || [];
+let editingIndex = null;
 
 const totalValueElement = document.getElementById("totalValue");
 const totalInvestedElement = document.getElementById("totalInvested");
@@ -109,12 +110,70 @@ function renderPortfolio() {
         ${formatEuro(profitLoss)}
       </div>
 
+      <button onclick="startEditAsset(${index})">✏️</button>
       <button onclick="updateSingleAssetPrice(${index})">🔄</button>
       <button onclick="deleteAsset(${index})">❌</button>
     `;
 
     portfolioList.appendChild(assetElement);
+
+    if (editingIndex === index) {
+      const editForm = document.createElement("div");
+      editForm.className = "edit-form";
+
+      editForm.innerHTML = `
+        <input id="editName" value="${item.name}" />
+        <input id="editType" value="${item.type}" />
+        <input id="editIsin" value="${item.isin}" />
+        <input id="editSymbol" value="${item.symbol}" />
+        <input id="editQuantity" type="number" value="${item.quantity}" />
+        <input id="editBuyPrice" type="number" value="${item.buyPrice}" />
+
+        <button onclick="saveEditAsset(${index})">Save</button>
+        <button onclick="cancelEditAsset()">Cancel</button>
+      `;
+
+      portfolioList.appendChild(editForm);
+    }
   });
+}
+
+function startEditAsset(index) {
+  editingIndex = index;
+  renderPortfolio();
+}
+
+function cancelEditAsset() {
+  editingIndex = null;
+  renderPortfolio();
+}
+
+function saveEditAsset(index) {
+  const name = document.getElementById("editName").value.trim();
+  const type = document.getElementById("editType").value.trim();
+  const isin = document.getElementById("editIsin").value.trim();
+  const symbol = document.getElementById("editSymbol").value.trim().toUpperCase();
+  const quantity = parseFloat(document.getElementById("editQuantity").value);
+  const buyPrice = parseFloat(document.getElementById("editBuyPrice").value);
+
+  if (!name || !type || !isin || !symbol || isNaN(quantity) || isNaN(buyPrice)) {
+    alert("Bitte alle Felder korrekt ausfüllen.");
+    return;
+  }
+
+  portfolio[index] = {
+    ...portfolio[index],
+    name,
+    type,
+    isin,
+    symbol,
+    quantity,
+    buyPrice
+  };
+
+  editingIndex = null;
+  savePortfolio();
+  updateDashboard();
 }
 
 function renderAllocation() {
@@ -191,7 +250,6 @@ function deleteAsset(index) {
 
 async function updateSingleAssetPrice(index) {
   const asset = portfolio[index];
-
   const quote = await fetchQuote(asset.symbol);
 
   if (!quote) {

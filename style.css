@@ -117,6 +117,23 @@ header h1 {
   cursor: pointer;
 }
 
+.edit-form {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.edit-form input {
+  padding: 8px;
+  border-radius: 8px;
+  border: none;
+}
+
+.asset {
+  grid-template-columns: 2fr 1fr 1fr 1fr auto auto;
+}
+
 @media (max-width: 768px) {
   .cards,
   .asset {
