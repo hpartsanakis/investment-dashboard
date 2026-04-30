@@ -51,12 +51,13 @@
   <input id="type" placeholder="Type" />
   <input id="isin" placeholder="ISIN" />
   <input id="invested" type="number" placeholder="Invested €" />
-  <input id="current" type="number" placeholder="Current Value €" />
+  <input id="quantity" type="number" placeholder="Stückzahl / Units" />
+<input id="price" type="number" placeholder="Kaufpreis pro Stück €" /> 
   <input id="symbol" placeholder="Symbol z.B. AAPL, MSFT, VUSA.L" />
 
   <button onclick="addAsset()">Add</button>
 </section>
-
+<button onclick="updateAllPrices()">Alle Kurse aktualisieren</button>
     <section class="portfolio">
       <h2>Portfolio</h2>
       <div id="portfolioList"></div>

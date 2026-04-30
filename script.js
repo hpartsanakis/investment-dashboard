@@ -23,6 +23,14 @@ function saveWatchlist() {
   localStorage.setItem("watchlist", JSON.stringify(watchlist));
 }
 
+function getCurrentValue(item) {
+  return item.quantity * item.currentPrice;
+}
+
+function getInvestedValue(item) {
+  return item.quantity * item.buyPrice;
+}
+
 async function fetchQuote(symbol) {
   const url = `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_API_KEY}`;
 
@@ -51,11 +59,11 @@ async function fetchQuote(symbol) {
 
 function calculateTotals() {
   const totalInvested = portfolio.reduce((sum, item) => {
-    return sum + item.amountInvested;
+    return sum + getInvestedValue(item);
   }, 0);
 
   const totalValue = portfolio.reduce((sum, item) => {
-    return sum + item.currentValue;
+    return sum + getCurrentValue(item);
   }, 0);
 
   const profitLoss = totalValue - totalInvested;
@@ -70,7 +78,9 @@ function renderPortfolio() {
   portfolioList.innerHTML = "";
 
   portfolio.forEach((item, index) => {
-    const profitLoss = item.currentValue - item.amountInvested;
+    const investedValue = getInvestedValue(item);
+    const currentValue = getCurrentValue(item);
+    const profitLoss = currentValue - investedValue;
     const profitLossClass = profitLoss >= 0 ? "positive" : "negative";
 
     const assetElement = document.createElement("div");
@@ -79,17 +89,19 @@ function renderPortfolio() {
     assetElement.innerHTML = `
       <div>
         <strong>${item.name}</strong><br>
-        <small>${item.type} · ${item.symbol || "kein Symbol"} · ${item.isin}</small>
+        <small>${item.type} · ${item.symbol} · ${item.isin}</small><br>
+        <small>Units: ${item.quantity}</small>
       </div>
 
       <div>
         <small>Investiert</small><br>
-        ${formatEuro(item.amountInvested)}
+        ${formatEuro(investedValue)}
       </div>
 
       <div>
         <small>Aktueller Wert</small><br>
-        ${formatEuro(item.currentValue)}
+        ${formatEuro(currentValue)}<br>
+        <small>Preis: ${formatEuro(item.currentPrice)}</small>
       </div>
 
       <div class="${profitLossClass}">
@@ -109,11 +121,12 @@ function renderAllocation() {
   allocationList.innerHTML = "";
 
   const totalValue = portfolio.reduce((sum, item) => {
-    return sum + item.currentValue;
+    return sum + getCurrentValue(item);
   }, 0);
 
   portfolio.forEach((item) => {
-    const percentage = totalValue > 0 ? (item.currentValue / totalValue) * 100 : 0;
+    const itemValue = getCurrentValue(item);
+    const percentage = totalValue > 0 ? (itemValue / totalValue) * 100 : 0;
 
     const allocationItem = document.createElement("div");
 
@@ -133,17 +146,17 @@ function addAsset() {
   const typeInput = document.getElementById("type");
   const isinInput = document.getElementById("isin");
   const symbolInput = document.getElementById("symbol");
-  const investedInput = document.getElementById("invested");
-  const currentInput = document.getElementById("current");
+  const quantityInput = document.getElementById("quantity");
+  const priceInput = document.getElementById("price");
 
   const name = nameInput.value.trim();
   const type = typeInput.value.trim();
   const isin = isinInput.value.trim();
   const symbol = symbolInput.value.trim().toUpperCase();
-  const invested = parseFloat(investedInput.value);
-  const current = parseFloat(currentInput.value);
+  const quantity = parseFloat(quantityInput.value);
+  const buyPrice = parseFloat(priceInput.value);
 
-  if (!name || !type || !isin || !symbol || isNaN(invested) || isNaN(current)) {
+  if (!name || !type || !isin || !symbol || isNaN(quantity) || isNaN(buyPrice)) {
     alert("Bitte alle Felder korrekt ausfüllen.");
     return;
   }
@@ -153,8 +166,9 @@ function addAsset() {
     type,
     isin,
     symbol,
-    amountInvested: invested,
-    currentValue: current
+    quantity,
+    buyPrice,
+    currentPrice: buyPrice
   });
 
   savePortfolio();
@@ -163,8 +177,8 @@ function addAsset() {
   typeInput.value = "";
   isinInput.value = "";
   symbolInput.value = "";
-  investedInput.value = "";
-  currentInput.value = "";
+  quantityInput.value = "";
+  priceInput.value = "";
 
   updateDashboard();
 }
@@ -178,11 +192,6 @@ function deleteAsset(index) {
 async function updateSingleAssetPrice(index) {
   const asset = portfolio[index];
 
-  if (!asset.symbol) {
-    alert("Dieses Asset hat kein Symbol.");
-    return;
-  }
-
   const quote = await fetchQuote(asset.symbol);
 
   if (!quote) {
@@ -190,7 +199,20 @@ async function updateSingleAssetPrice(index) {
     return;
   }
 
-  asset.currentValue = quote.currentPrice;
+  asset.currentPrice = quote.currentPrice;
+  savePortfolio();
+  updateDashboard();
+}
+
+async function updateAllPrices() {
+  for (let i = 0; i < portfolio.length; i++) {
+    const quote = await fetchQuote(portfolio[i].symbol);
+
+    if (quote) {
+      portfolio[i].currentPrice = quote.currentPrice;
+    }
+  }
+
   savePortfolio();
   updateDashboard();
 }
