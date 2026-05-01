@@ -1,105 +1,57 @@
 <!DOCTYPE html>
 <html lang="de">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Investment Dashboard</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <main class="app">
-    <header class="header">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Investment Dashboard</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <main class="app">
       <h1>Investment Dashboard</h1>
-      <p>Portfolio, Transactions, Performance & Watchlist</p>
-    </header>
 
-    <section class="cards">
-      <div class="card">
-        <h2>Gesamtwert</h2>
-        <p id="totalValue">0 €</p>
-      </div>
+      <section class="card">
+        <h2>Investment hinzufügen</h2>
 
-      <div class="card">
-        <h2>Investiert</h2>
-        <p id="totalInvested">0 €</p>
-      </div>
+        <label for="assetName">Asset</label>
+        <select id="assetName">
+          <option value="FTSE All World ETF">FTSE All World ETF</option>
+          <option value="Global Aggregate Bond ETF">Global Aggregate Bond ETF</option>
+          <option value="Gold ETC">Gold ETC</option>
+          <option value="Tagesgeld">Tagesgeld</option>
+        </select>
 
-      <div class="card">
-        <h2>Gewinn / Verlust</h2>
-        <p id="profitLoss">0 €</p>
-      </div>
-    </section>
+        <label for="monthlyInvestment">Monatliche Investition (€)</label>
+        <input type="number" id="monthlyInvestment" placeholder="z.B. 500" />
 
-    <section class="cards">
-      <div class="card">
-        <h2>Bester Performer</h2>
-        <p id="bestPerformer">-</p>
-      </div>
+        <label for="buyPrice">Kaufpreis pro Stück (€)</label>
+        <input type="number" id="buyPrice" placeholder="z.B. 100" />
 
-      <div class="card">
-        <h2>Schlechtester Performer</h2>
-        <p id="worstPerformer">-</p>
-      </div>
+        <label for="currentPrice">Aktueller Preis pro Stück (€)</label>
+        <input type="number" id="currentPrice" placeholder="z.B. 110" />
 
-      <div class="card">
-        <h2>Portfolio Performance</h2>
-        <p id="portfolioPerformance">0%</p>
-      </div>
-    </section>
+        <label for="units">Gekaufte Units</label>
+        <input type="number" id="units" readonly />
 
-    <section class="panel">
-      <h2>Add Asset</h2>
+        <button type="button" id="addInvestment">Investment hinzufügen</button>
+        <button type="button" id="resetAll">Alles löschen</button>
+      </section>
 
-      <div class="form-grid">
-        <input id="name" placeholder="Name z.B. Apple" />
-        <input id="type" placeholder="Type z.B. Stock / ETF" />
-        <input id="isin" placeholder="ISIN" />
-        <input id="symbol" placeholder="Symbol z.B. AAPL" />
-        <input id="quantity" type="number" step="0.0001" placeholder="Units" />
-        <input id="price" type="number" step="0.01" placeholder="Kaufpreis pro Stück" />
-      </div>
-       
-      <div class="form-group">
-  <label for="monthlyInvestment">Monatliche Investition (€)</label>
-  <input type="number" id="monthlyInvestment" placeholder="z.B. 500" step="0.01" />
-</div>
+      <section class="card">
+        <h2>Portfolio Übersicht</h2>
+        <p>Gesamt investiert: <strong id="totalInvested">0.00 €</strong></p>
+        <p>Gesamtwert heute: <strong id="totalValue">0.00 €</strong></p>
+        <p>Gewinn / Verlust: <strong id="totalProfit">0.00 €</strong></p>
+        <p>Gesamt Units: <strong id="totalUnits">0.0000</strong></p>
+      </section>
 
-<div class="form-group">
-  <label for="buyPrice">Kaufpreis pro Stück (€)</label>
-  <input type="number" id="buyPrice" placeholder="z.B. 103.50" step="0.01" />
-</div>
+      <section class="card">
+        <h2>Investments</h2>
+        <div id="investmentList"></div>
+      </section>
+    </main>
 
-<div class="form-group">
-  <label for="units">Gekaufte Units</label>
-  <input type="number" id="units" placeholder="Wird automatisch berechnet" step="0.0001" readonly />
-</div>
-
-
-      <button class="primary-btn" onclick="addAsset()">Add Asset</button>
-    </section>
-
-    <section class="cards">
-      <div class="card">
-        <h2>Asset Allocation</h2>
-        <div id="allocationList"></div>
-      </div>
-
-      <div class="card">
-        <h2>Watchlist</h2>
-        <div class="watch-form">
-          <input id="watchInput" placeholder="z.B. AAPL, MSFT, VWCE" />
-          <button onclick="addWatchItem()">Add</button>
-        </div>
-        <ul id="watchList"></ul>
-      </div>
-    </section>
-
-    <section class="panel">
-      <h2>Portfolio</h2>
-      <div id="portfolioList"></div>
-    </section>
-  </main>
-
-  <script src="script.js"></script>
-</body>
+    <script src="script.js"></script>
+  </body>
 </html>
