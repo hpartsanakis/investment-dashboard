@@ -35,6 +35,15 @@ function addAsset() {
     return;
   }
 
+  const duplicateAsset = assets.find(
+    (asset) => asset.wkn === wkn || asset.isin === isin || asset.ticker === ticker
+  );
+
+  if (duplicateAsset) {
+    alert("Dieses Asset existiert bereits.");
+    return;
+  }
+
   const asset = {
     id: Date.now(),
     name,
@@ -62,11 +71,24 @@ function renderAssets() {
       <p>WKN: ${asset.wkn}</p>
       <p>ISIN: ${asset.isin}</p>
       <p>Ticker: ${asset.ticker}</p>
+      <button type="button" onclick="deleteAsset(${asset.id})">Asset löschen</button>
       <hr />
     `;
 
     assetList.appendChild(item);
   });
+}
+
+function deleteAsset(assetId) {
+  const confirmDelete = confirm("Willst du dieses Asset wirklich löschen?");
+
+  if (!confirmDelete) return;
+
+  assets = assets.filter((asset) => asset.id !== assetId);
+
+  saveAssets();
+  renderAssets();
+  updateAssetSelect();
 }
 
 function updateAssetSelect() {

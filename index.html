@@ -11,56 +11,65 @@
     <main class="app">
       <h1>Investment Dashboard</h1>
 
+      <!-- 🔹 ASSET ANLEGEN -->
+      <section class="card">
+        <h2>Asset anlegen</h2>
+
+        <label>Name</label>
+        <input type="text" id="assetName" placeholder="z.B. FTSE All World ETF" />
+
+        <label>WKN</label>
+        <input type="text" id="assetWkn" placeholder="z.B. A2PKXG" />
+
+        <label>ISIN</label>
+        <input type="text" id="assetIsin" placeholder="z.B. IE00BK5BQT80" />
+
+        <label>Ticker</label>
+        <input type="text" id="assetTicker" placeholder="z.B. VWCE" />
+
+        <button type="button" id="addAsset">Asset speichern</button>
+      </section>
+
+      <!-- 🔹 ASSET LISTE -->
+      <section class="card">
+        <h2>Gespeicherte Assets</h2>
+        <div id="assetList"></div>
+      </section>
+
+      <!-- 🔹 INVESTMENT -->
       <section class="card">
         <h2>Investment hinzufügen</h2>
 
-        <section class="card">
-  <h2>Asset anlegen</h2>
+        <label>Asset auswählen</label>
+        <select id="investmentAsset"></select>
 
-  <label for="assetName">Name</label>
-  <input type="text" id="assetName" placeholder="z.B. FTSE All World ETF" />
-
-  <label for="assetWkn">WKN</label>
-  <input type="text" id="assetWkn" placeholder="z.B. A2PKXG" />
-
-  <label for="assetIsin">ISIN</label>
-  <input type="text" id="assetIsin" placeholder="z.B. IE00BK5BQT80" />
-
-  <label for="assetTicker">Ticker</label>
-  <input type="text" id="assetTicker" placeholder="z.B. VWCE" />
-
-  <button type="button" id="addAsset">Asset speichern</button>
-</section>
-
-<section class="card">
-  <h2>Gespeicherte Assets</h2>
-  <div id="assetList"></div>
-</section>
-
-        <label for="monthlyInvestment">Monatliche Investition (€)</label>
+        <label>Monatliche Investition (€)</label>
         <input type="number" id="monthlyInvestment" placeholder="z.B. 500" />
 
-        <label for="buyPrice">Kaufpreis pro Stück (€)</label>
+        <label>Kaufpreis pro Stück (€)</label>
         <input type="number" id="buyPrice" placeholder="z.B. 100" />
 
-        <label for="currentPrice">Aktueller Preis pro Stück (€)</label>
+        <label>Aktueller Preis (€)</label>
         <input type="number" id="currentPrice" placeholder="z.B. 110" />
 
-        <label for="units">Gekaufte Units</label>
+        <label>Gekaufte Units</label>
         <input type="number" id="units" readonly />
 
         <button type="button" id="addInvestment">Investment hinzufügen</button>
-        <button type="button" id="resetAll">Alles löschen</button>
+        <button type="button" id="resetAll">Alle Investments löschen</button>
       </section>
 
+      <!-- 🔹 PORTFOLIO -->
       <section class="card">
         <h2>Portfolio Übersicht</h2>
+
         <p>Gesamt investiert: <strong id="totalInvested">0.00 €</strong></p>
-        <p>Gesamtwert heute: <strong id="totalValue">0.00 €</strong></p>
+        <p>Gesamtwert: <strong id="totalValue">0.00 €</strong></p>
         <p>Gewinn / Verlust: <strong id="totalProfit">0.00 €</strong></p>
         <p>Gesamt Units: <strong id="totalUnits">0.0000</strong></p>
       </section>
 
+      <!-- 🔹 INVESTMENT LISTE -->
       <section class="card">
         <h2>Investments</h2>
         <div id="investmentList"></div>
