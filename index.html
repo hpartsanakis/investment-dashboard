@@ -13,22 +13,9 @@
 
       <section class="card">
         <h2>Investment hinzufügen</h2>
-<label for="assetSearch">Wertpapiersuche</label>
-<input
-  type="text"
-  id="assetSearch"
-  placeholder="Name, ISIN, WKN oder Ticker eingeben"
-/>
 
-<button type="button" id="searchAsset">Suchen</button>
-
-<div id="searchResults"></div>
-
-<input type="hidden" id="assetName" />
-        
-
-<button type="button" id="fetchPrice">Live Preis laden</button>
-        
+        <label for="assetName">Asset</label>
+        <input type="text" id="assetName" placeholder="z.B. FTSE All World ETF" />
 
         <label for="monthlyInvestment">Monatliche Investition (€)</label>
         <input type="number" id="monthlyInvestment" placeholder="z.B. 500" />
