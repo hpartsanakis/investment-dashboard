@@ -13,6 +13,9 @@ const totalProfitDisplay = document.getElementById("totalProfit");
 const totalUnitsDisplay = document.getElementById("totalUnits");
 const investmentList = document.getElementById("investmentList");
 
+const apiKeyInput = document.getElementById("apiKey");
+const fetchPriceBtn = document.getElementById("fetchPrice");
+
 let investments = JSON.parse(localStorage.getItem("investments")) || [];
 
 function calculateUnits() {
@@ -23,6 +26,37 @@ function calculateUnits() {
     unitsInput.value = (monthlyInvestment / buyPrice).toFixed(4);
   } else {
     unitsInput.value = "";
+  }
+}
+
+async function fetchLivePrice() {
+  const symbol = assetNameInput.value;
+  const apiKey = apiKeyInput.value.trim();
+
+  if (!apiKey) {
+    alert("Bitte Twelve Data API Key eingeben.");
+    return;
+  }
+
+  try {
+    const url = `https://api.twelvedata.com/quote?symbol=${symbol}&apikey=${apiKey}`;
+
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (!data.close) {
+      alert("Kein Preis gefunden. Prüfe Symbol oder API Key.");
+      console.log(data);
+      return;
+    }
+
+    fetchPriceBtn.addEventListener("click", fetchLivePrice);
+
+    currentPriceInput.value = Number(data.close).toFixed(2);
+    calculateUnits();
+  } catch (error) {
+    alert("Live Preis konnte nicht geladen werden.");
+    console.error(error);
   }
 }
 

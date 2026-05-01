@@ -16,11 +16,19 @@
 
         <label for="assetName">Asset</label>
         <select id="assetName">
-          <option value="FTSE All World ETF">FTSE All World ETF</option>
-          <option value="Global Aggregate Bond ETF">Global Aggregate Bond ETF</option>
-          <option value="Gold ETC">Gold ETC</option>
-          <option value="Tagesgeld">Tagesgeld</option>
-        </select>
+  <option value="VWCE">FTSE All-World ETF</option>
+  <option value="EUNA">Global Aggregate Bond ETF</option>
+  <option value="SGLD">Gold ETC</option>
+</select>
+
+<input
+  type="text"
+  id="apiKey"
+  placeholder="Twelve Data API Key"
+/>
+
+<button type="button" id="fetchPrice">Live Preis laden</button>
+        
 
         <label for="monthlyInvestment">Monatliche Investition (€)</label>
         <input type="number" id="monthlyInvestment" placeholder="z.B. 500" />
