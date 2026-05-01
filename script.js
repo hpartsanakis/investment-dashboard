@@ -285,6 +285,25 @@ function saveEditAsset(index) {
   updateDashboard();
 }
 
+const monthlyInvestmentInput = document.getElementById("monthlyInvestment");
+const buyPriceInput = document.getElementById("buyPrice");
+const unitsInput = document.getElementById("units");
+
+function calculateUnits() {
+  const monthlyInvestment = Number(monthlyInvestmentInput.value);
+  const buyPrice = Number(buyPriceInput.value);
+
+  if (monthlyInvestment > 0 && buyPrice > 0) {
+    const units = monthlyInvestment / buyPrice;
+    unitsInput.value = units.toFixed(4);
+  } else {
+    unitsInput.value = "";
+  }
+}
+
+monthlyInvestmentInput.addEventListener("input", calculateUnits);
+buyPriceInput.addEventListener("input", calculateUnits);
+
 function renderTransactionForm(index) {
   const form = document.createElement("div");
   form.className = "edit-form";

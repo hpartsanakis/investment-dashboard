@@ -58,6 +58,22 @@
         <input id="quantity" type="number" step="0.0001" placeholder="Units" />
         <input id="price" type="number" step="0.01" placeholder="Kaufpreis pro Stück" />
       </div>
+       
+      <div class="form-group">
+  <label for="monthlyInvestment">Monatliche Investition (€)</label>
+  <input type="number" id="monthlyInvestment" placeholder="z.B. 500" step="0.01" />
+</div>
+
+<div class="form-group">
+  <label for="buyPrice">Kaufpreis pro Stück (€)</label>
+  <input type="number" id="buyPrice" placeholder="z.B. 103.50" step="0.01" />
+</div>
+
+<div class="form-group">
+  <label for="units">Gekaufte Units</label>
+  <input type="number" id="units" placeholder="Wird automatisch berechnet" step="0.0001" readonly />
+</div>
+
 
       <button class="primary-btn" onclick="addAsset()">Add Asset</button>
     </section>
