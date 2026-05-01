@@ -16,7 +16,62 @@ const investmentList = document.getElementById("investmentList");
 const apiKeyInput = document.getElementById("apiKey");
 const fetchPriceBtn = document.getElementById("fetchPrice");
 
+const assetSearchInput = document.getElementById("assetSearch");
+const searchAssetBtn = document.getElementById("searchAsset");
+const searchResults = document.getElementById("searchResults");
+
 let investments = JSON.parse(localStorage.getItem("investments")) || [];
+
+async function searchAsset() {
+  const query = assetSearchInput.value.trim();
+  const apiKey = apiKeyInput.value.trim();
+
+  if (!query) {
+    alert("Bitte Name, ISIN, WKN oder Ticker eingeben.");
+    return;
+  }
+
+  if (!apiKey) {
+    alert("Bitte Twelve Data API Key eingeben.");
+    return;
+  }
+
+  try {
+    const url = `https://api.twelvedata.com/symbol_search?symbol=${encodeURIComponent(
+      query,
+    )}&apikey=${apiKey}`;
+
+    const response = await fetch(url);
+    const data = await response.json();
+
+    searchResults.innerHTML = "";
+
+    if (!data.data || data.data.length === 0) {
+      searchResults.innerHTML = "<p>Kein Wertpapier gefunden.</p>";
+      return;
+    }
+
+    data.data.slice(0, 5).forEach((asset) => {
+      const button = document.createElement("button");
+      button.type = "button";
+
+      button.textContent = `${asset.instrument_name} | ${asset.symbol} | ${asset.exchange}`;
+
+      button.addEventListener("click", () => {
+        assetNameInput.value = asset.symbol;
+        assetSearchInput.value = `${asset.instrument_name} (${asset.symbol})`;
+        searchResults.innerHTML = "";
+      });
+
+      searchResults.appendChild(button);
+    });
+  } catch (error) {
+    console.error(error);
+    alert("Suche fehlgeschlagen.");
+  }
+}
+
+searchAssetBtn.addEventListener("click", searchAsset);
 
 function calculateUnits() {
   const monthlyInvestment = Number(monthlyInvestmentInput.value);

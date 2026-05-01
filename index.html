@@ -13,19 +13,19 @@
 
       <section class="card">
         <h2>Investment hinzufügen</h2>
-
-        <label for="assetName">Asset</label>
-        <select id="assetName">
-  <option value="VWCE">FTSE All-World ETF</option>
-  <option value="EUNA">Global Aggregate Bond ETF</option>
-  <option value="SGLD">Gold ETC</option>
-</select>
-
+<label for="assetSearch">Wertpapiersuche</label>
 <input
   type="text"
-  id="apiKey"
-  placeholder="Twelve Data API Key"
+  id="assetSearch"
+  placeholder="Name, ISIN, WKN oder Ticker eingeben"
 />
+
+<button type="button" id="searchAsset">Suchen</button>
+
+<div id="searchResults"></div>
+
+<input type="hidden" id="assetName" />
+        
 
 <button type="button" id="fetchPrice">Live Preis laden</button>
         
