@@ -72,14 +72,31 @@
       </section>
 
       <!-- 🔹 PORTFOLIO -->
-      <section class="card">
-        <h2>Portfolio Übersicht</h2>
+     <section class="card">
+  <h2>Portfolio Übersicht</h2>
 
-        <p>Gesamt investiert: <strong id="totalInvested">0.00 €</strong></p>
-        <p>Gesamtwert: <strong id="totalValue">0.00 €</strong></p>
-        <p>Gewinn / Verlust: <strong id="totalProfit">0.00 €</strong></p>
-        <p>Gesamt Units: <strong id="totalUnits">0.0000</strong></p>
-      </section>
+  <table id="portfolioTable">
+    <thead>
+      <tr>
+        <th>Asset</th>
+        <th>Investiert (€)</th>
+        <th>Wert (€)</th>
+        <th>Gewinn / Verlust (€)</th>
+        <th>Units</th>
+      </tr>
+    </thead>
+    <tbody id="portfolioTableBody"></tbody>
+    <tfoot>
+      <tr>
+        <th>GESAMT</th>
+        <th id="totalInvested">0.00 €</th>
+        <th id="totalValue">0.00 €</th>
+        <th id="totalProfit">0.00 €</th>
+        <th id="totalUnits">0.0000</th>
+      </tr>
+    </tfoot>
+  </table>
+</section>
 
       <!-- 🔹 INVESTMENT LISTE -->
       <section class="card">

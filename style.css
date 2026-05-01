@@ -179,9 +179,16 @@ tr:nth-child(even) {
   background-color: #f5f5f5;
 }
 
+tfoot {
+  font-weight: bold;
+  background: #eee;
+}
+
 button {
   cursor: pointer;
 }
+
+
 
 @media (max-width: 900px) {
   .cards,
