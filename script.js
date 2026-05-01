@@ -4,7 +4,7 @@ const assetIsinInput = document.getElementById("assetIsin");
 const assetTickerInput = document.getElementById("assetTicker");
 
 const addAssetBtn = document.getElementById("addAsset");
-const assetList = document.getElementById("assetList");
+const assetTableBody = document.getElementById("assetTableBody");
 
 const investmentAssetInput = document.getElementById("investmentAsset");
 const monthlyInvestmentInput = document.getElementById("monthlyInvestment");
@@ -36,7 +36,8 @@ function addAsset() {
   }
 
   const duplicateAsset = assets.find(
-    (asset) => asset.wkn === wkn || asset.isin === isin || asset.ticker === ticker
+    (asset) =>
+      asset.wkn === wkn || asset.isin === isin || asset.ticker === ticker,
   );
 
   if (duplicateAsset) {
@@ -60,22 +61,22 @@ function addAsset() {
 }
 
 function renderAssets() {
-  assetList.innerHTML = "";
+  assetTableBody.innerHTML = "";
 
   assets.forEach((asset) => {
-    const item = document.createElement("div");
-    item.classList.add("investment-item");
+    const row = document.createElement("tr");
 
-    item.innerHTML = `
-      <h3>${asset.name}</h3>
-      <p>WKN: ${asset.wkn}</p>
-      <p>ISIN: ${asset.isin}</p>
-      <p>Ticker: ${asset.ticker}</p>
-      <button type="button" onclick="deleteAsset(${asset.id})">Asset löschen</button>
-      <hr />
+    row.innerHTML = `
+      <td>${asset.name}</td>
+      <td>${asset.wkn}</td>
+      <td>${asset.isin}</td>
+      <td>${asset.ticker}</td>
+      <td>
+        <button onclick="deleteAsset(${asset.id})">❌</button>
+      </td>
     `;
 
-    assetList.appendChild(item);
+    assetTableBody.appendChild(row);
   });
 }
 
@@ -151,7 +152,9 @@ function addInvestment() {
   }
 
   if (investedAmount <= 0 || buyPrice <= 0 || currentPrice <= 0 || units <= 0) {
-    alert("Bitte Investmentbetrag, Kaufpreis und aktuellen Preis korrekt eingeben.");
+    alert(
+      "Bitte Investmentbetrag, Kaufpreis und aktuellen Preis korrekt eingeben.",
+    );
     return;
   }
 
@@ -213,7 +216,8 @@ function renderInvestments() {
 
   totalInvestedDisplay.textContent = totalInvested.toFixed(2) + " €";
   totalValueDisplay.textContent = totalValue.toFixed(2) + " €";
-  totalProfitDisplay.textContent = (totalValue - totalInvested).toFixed(2) + " €";
+  totalProfitDisplay.textContent =
+    (totalValue - totalInvested).toFixed(2) + " €";
   totalUnitsDisplay.textContent = totalUnits.toFixed(4);
 }
 
