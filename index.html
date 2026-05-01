@@ -14,8 +14,28 @@
       <section class="card">
         <h2>Investment hinzufügen</h2>
 
-        <label for="assetName">Asset</label>
-        <input type="text" id="assetName" placeholder="z.B. FTSE All World ETF" />
+        <section class="card">
+  <h2>Asset anlegen</h2>
+
+  <label for="assetName">Name</label>
+  <input type="text" id="assetName" placeholder="z.B. FTSE All World ETF" />
+
+  <label for="assetWkn">WKN</label>
+  <input type="text" id="assetWkn" placeholder="z.B. A2PKXG" />
+
+  <label for="assetIsin">ISIN</label>
+  <input type="text" id="assetIsin" placeholder="z.B. IE00BK5BQT80" />
+
+  <label for="assetTicker">Ticker</label>
+  <input type="text" id="assetTicker" placeholder="z.B. VWCE" />
+
+  <button type="button" id="addAsset">Asset speichern</button>
+</section>
+
+<section class="card">
+  <h2>Gespeicherte Assets</h2>
+  <div id="assetList"></div>
+</section>
 
         <label for="monthlyInvestment">Monatliche Investition (€)</label>
         <input type="number" id="monthlyInvestment" placeholder="z.B. 500" />
