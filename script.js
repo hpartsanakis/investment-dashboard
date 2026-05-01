@@ -19,7 +19,7 @@ const totalInvestedDisplay = document.getElementById("totalInvested");
 const totalValueDisplay = document.getElementById("totalValue");
 const totalProfitDisplay = document.getElementById("totalProfit");
 const totalUnitsDisplay = document.getElementById("totalUnits");
-const investmentList = document.getElementById("investmentList");
+const investmentTableBody = document.getElementById("investmentTableBody");
 const portfolioTableBody = document.getElementById("portfolioTableBody");
 
 let assets = JSON.parse(localStorage.getItem("assets")) || [];
@@ -180,7 +180,7 @@ function addInvestment() {
 }
 
 function renderInvestments() {
-  investmentList.innerHTML = "";
+  investmentTableBody.innerHTML = "";
   portfolioTableBody.innerHTML = "";
 
   let totalInvested = 0;
@@ -189,48 +189,66 @@ function renderInvestments() {
 
   const portfolioMap = {};
 
-  // 🔹 Daten zusammenfassen pro Asset
-  investments.forEach((inv) => {
-    if (!portfolioMap[inv.assetId]) {
-      portfolioMap[inv.assetId] = {
-        name: inv.assetName,
+  investments.forEach((investment) => {
+    const currentValue = investment.units * investment.currentPrice;
+    const profit = currentValue - investment.investedAmount;
+
+    totalInvested += investment.investedAmount;
+    totalValue += currentValue;
+    totalUnits += investment.units;
+
+    const investmentRow = document.createElement("tr");
+
+    investmentRow.innerHTML = `
+      <td>${investment.date}</td>
+      <td>${investment.assetName}</td>
+      <td>${investment.wkn}</td>
+      <td>${investment.isin}</td>
+      <td>${investment.ticker}</td>
+      <td>${investment.investedAmount.toFixed(2)} €</td>
+      <td>${investment.buyPrice.toFixed(2)} €</td>
+      <td>${investment.currentPrice.toFixed(2)} €</td>
+      <td>${investment.units.toFixed(4)}</td>
+      <td>${currentValue.toFixed(2)} €</td>
+      <td class="${profit >= 0 ? "positive" : "negative"}">
+        ${profit.toFixed(2)} €
+      </td>
+    `;
+
+    investmentTableBody.appendChild(investmentRow);
+
+    if (!portfolioMap[investment.assetId]) {
+      portfolioMap[investment.assetId] = {
+        name: investment.assetName,
         invested: 0,
         value: 0,
         units: 0,
       };
     }
 
-    const currentValue = inv.units * inv.currentPrice;
-
-    portfolioMap[inv.assetId].invested += inv.investedAmount;
-    portfolioMap[inv.assetId].value += currentValue;
-    portfolioMap[inv.assetId].units += inv.units;
-
-    totalInvested += inv.investedAmount;
-    totalValue += currentValue;
-    totalUnits += inv.units;
+    portfolioMap[investment.assetId].invested += investment.investedAmount;
+    portfolioMap[investment.assetId].value += currentValue;
+    portfolioMap[investment.assetId].units += investment.units;
   });
 
-  // 🔹 Tabelle füllen
   Object.values(portfolioMap).forEach((asset) => {
     const profit = asset.value - asset.invested;
 
-    const row = document.createElement("tr");
+    const portfolioRow = document.createElement("tr");
 
-    row.innerHTML = `
+    portfolioRow.innerHTML = `
       <td>${asset.name}</td>
       <td>${asset.invested.toFixed(2)} €</td>
       <td>${asset.value.toFixed(2)} €</td>
-      <td style="color:${profit >= 0 ? "green" : "red"}">
+      <td class="${profit >= 0 ? "positive" : "negative"}">
         ${profit.toFixed(2)} €
       </td>
       <td>${asset.units.toFixed(4)}</td>
     `;
 
-    portfolioTableBody.appendChild(row);
+    portfolioTableBody.appendChild(portfolioRow);
   });
 
-  // 🔹 Gesamtwerte
   const totalProfit = totalValue - totalInvested;
 
   totalInvestedDisplay.textContent = totalInvested.toFixed(2) + " €";

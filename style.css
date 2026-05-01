@@ -188,7 +188,15 @@ button {
   cursor: pointer;
 }
 
+.positive {
+  color: green;
+  font-weight: bold;
+}
 
+.negative {
+  color: red;
+  font-weight: bold;
+}
 
 @media (max-width: 900px) {
   .cards,

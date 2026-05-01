@@ -100,9 +100,27 @@
 
       <!-- 🔹 INVESTMENT LISTE -->
       <section class="card">
-        <h2>Investments</h2>
-        <div id="investmentList"></div>
-      </section>
+  <h2>Investments</h2>
+
+  <table id="investmentTable">
+    <thead>
+      <tr>
+        <th>Datum</th>
+        <th>Asset</th>
+        <th>WKN</th>
+        <th>ISIN</th>
+        <th>Ticker</th>
+        <th>Investiert (€)</th>
+        <th>Kaufpreis (€)</th>
+        <th>Aktueller Preis (€)</th>
+        <th>Units</th>
+        <th>Wert (€)</th>
+        <th>Gewinn / Verlust (€)</th>
+      </tr>
+    </thead>
+    <tbody id="investmentTableBody"></tbody>
+  </table>
+</section>
     </main>
 
     <script src="script.js"></script>
