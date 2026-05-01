@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Investment Dashboard</title>
     <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
 
   <body>
@@ -96,6 +97,16 @@
       </tr>
     </tfoot>
   </table>
+</section>
+
+<section class="card">
+  <h2>Charts</h2>
+
+  <h3>Gesamtentwicklung</h3>
+  <canvas id="totalChart"></canvas>
+
+  <h3>Wert pro Asset</h3>
+  <canvas id="assetChart"></canvas>
 </section>
 
       <!-- 🔹 INVESTMENT LISTE -->

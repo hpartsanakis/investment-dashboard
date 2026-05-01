@@ -22,6 +22,12 @@ const totalUnitsDisplay = document.getElementById("totalUnits");
 const investmentTableBody = document.getElementById("investmentTableBody");
 const portfolioTableBody = document.getElementById("portfolioTableBody");
 
+const totalChartCanvas = document.getElementById("totalChart");
+const assetChartCanvas = document.getElementById("assetChart");
+
+let totalChart = null;
+let assetChart = null;
+
 let assets = JSON.parse(localStorage.getItem("assets")) || [];
 let investments = JSON.parse(localStorage.getItem("investments")) || [];
 
@@ -78,6 +84,68 @@ function renderAssets() {
     `;
 
     assetTableBody.appendChild(row);
+  });
+}
+
+function renderCharts() {
+  if (typeof Chart === "undefined") return;
+
+  const labels = investments.map((investment) => investment.date);
+
+  let runningTotal = 0;
+  const totalValues = investments.map((investment) => {
+    runningTotal += investment.units * investment.currentPrice;
+    return runningTotal.toFixed(2);
+  });
+
+  if (totalChart) {
+    totalChart.destroy();
+  }
+
+  totalChart = new Chart(totalChartCanvas, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "Gesamtwert (€)",
+          data: totalValues,
+          tension: 0.3,
+        },
+      ],
+    },
+  });
+
+  const assetMap = {};
+
+  investments.forEach((investment) => {
+    const value = investment.units * investment.currentPrice;
+
+    if (!assetMap[investment.assetName]) {
+      assetMap[investment.assetName] = 0;
+    }
+
+    assetMap[investment.assetName] += value;
+  });
+
+  const assetLabels = Object.keys(assetMap);
+  const assetValues = Object.values(assetMap).map((value) => value.toFixed(2));
+
+  if (assetChart) {
+    assetChart.destroy();
+  }
+
+  assetChart = new Chart(assetChartCanvas, {
+    type: "bar",
+    data: {
+      labels: assetLabels,
+      datasets: [
+        {
+          label: "Wert pro Asset (€)",
+          data: assetValues,
+        },
+      ],
+    },
   });
 }
 
@@ -255,6 +323,7 @@ function renderInvestments() {
   totalValueDisplay.textContent = totalValue.toFixed(2) + " €";
   totalProfitDisplay.textContent = totalProfit.toFixed(2) + " €";
   totalUnitsDisplay.textContent = totalUnits.toFixed(4);
+  renderCharts();
 }
 
 function saveInvestments() {
