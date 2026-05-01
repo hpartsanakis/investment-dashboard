@@ -32,27 +32,43 @@ function saveWatchlist() {
 }
 
 function getQuantity(item) {
-  if (!item.transactions) return item.quantity || 0;
+  if (!item.transactions || item.transactions.length === 0) {
+    return item.quantity || 0;
+  }
 
-  return item.transactions.reduce((sum, t) => {
-    if (t.type === "BUY") return sum + t.quantity;
-    if (t.type === "SELL") return sum - t.quantity;
+  return item.transactions.reduce((sum, transaction) => {
+    if (transaction.type === "BUY") {
+      return sum + transaction.quantity;
+    }
+
+    if (transaction.type === "SELL") {
+      return sum - transaction.quantity;
+    }
+
     return sum;
   }, 0);
 }
 
 function getInvestedValue(item) {
-  if (!item.transactions) return item.quantity * item.buyPrice;
+  if (!item.transactions || item.transactions.length === 0) {
+    return (item.quantity || 0) * (item.buyPrice || 0);
+  }
 
-  return item.transactions.reduce((sum, t) => {
-    if (t.type === "BUY") return sum + t.quantity * t.price;
-    if (t.type === "SELL") return sum - t.quantity * t.price;
+  return item.transactions.reduce((sum, transaction) => {
+    if (transaction.type === "BUY") {
+      return sum + transaction.quantity * transaction.price;
+    }
+
+    if (transaction.type === "SELL") {
+      return sum - transaction.quantity * transaction.price;
+    }
+
     return sum;
   }, 0);
 }
 
 function getCurrentValue(item) {
-  return getQuantity(item) * item.currentPrice;
+  return getQuantity(item) * (item.currentPrice || 0);
 }
 
 function getProfitLoss(item) {
@@ -61,7 +77,11 @@ function getProfitLoss(item) {
 
 function getProfitLossPercent(item) {
   const invested = getInvestedValue(item);
-  if (invested === 0) return 0;
+
+  if (invested === 0) {
+    return 0;
+  }
+
   return (getProfitLoss(item) / invested) * 100;
 }
 
@@ -70,25 +90,11 @@ function getPortfolioWeight(item) {
     return sum + getCurrentValue(asset);
   }, 0);
 
-  if (totalValue === 0) return 0;
+  if (totalValue === 0) {
+    return 0;
+  }
 
   return (getCurrentValue(item) / totalValue) * 100;
-}
-
-async function fetchQuote(symbol) {
-  const url = `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_API_KEY}`;
-
-  try {
-    const res = await fetch(url);
-    const data = await res.json();
-
-    if (!data || data.c === 0) throw new Error("Keine Kursdaten gefunden");
-
-    return data;
-  } catch (error) {
-    console.error("API Fehler:", error);
-    return null;
-  }
 }
 
 function calculateTotals() {
@@ -105,14 +111,72 @@ function calculateTotals() {
   totalInvestedElement.textContent = formatEuro(totalInvested);
   totalValueElement.textContent = formatEuro(totalValue);
   profitLossElement.textContent = formatEuro(profitLoss);
+
   profitLossElement.className = profitLoss >= 0 ? "positive" : "negative";
+}
+
+function addAsset() {
+  const nameInput = document.getElementById("name");
+  const typeInput = document.getElementById("type");
+  const isinInput = document.getElementById("isin");
+  const symbolInput = document.getElementById("symbol");
+  const quantityInput = document.getElementById("quantity");
+  const priceInput = document.getElementById("price");
+
+  const name = nameInput.value.trim();
+  const type = typeInput.value.trim();
+  const isin = isinInput.value.trim();
+  const symbol = symbolInput.value.trim().toUpperCase();
+  const quantity = parseFloat(quantityInput.value);
+  const buyPrice = parseFloat(priceInput.value);
+
+  if (!name || !type || !isin || !symbol || isNaN(quantity) || isNaN(buyPrice)) {
+    alert("Bitte alle Felder korrekt ausfüllen.");
+    return;
+  }
+
+  const newAsset = {
+    name: name,
+    type: type,
+    isin: isin,
+    symbol: symbol,
+    quantity: quantity,
+    buyPrice: buyPrice,
+    currentPrice: buyPrice,
+    transactions: [
+      {
+        type: "BUY",
+        date: new Date().toISOString().split("T")[0],
+        quantity: quantity,
+        price: buyPrice,
+        note: "Initial buy"
+      }
+    ]
+  };
+
+  portfolio.push(newAsset);
+  savePortfolio();
+
+  nameInput.value = "";
+  typeInput.value = "";
+  isinInput.value = "";
+  symbolInput.value = "";
+  quantityInput.value = "";
+  priceInput.value = "";
+
+  updateDashboard();
 }
 
 function renderPortfolio() {
   portfolioList.innerHTML = "";
 
+  if (portfolio.length === 0) {
+    portfolioList.innerHTML = "<p>No assets yet. Add your first asset above.</p>";
+    return;
+  }
+
   portfolio.forEach((item, index) => {
-    const qty = getQuantity(item);
+    const quantity = getQuantity(item);
     const invested = getInvestedValue(item);
     const current = getCurrentValue(item);
     const profit = getProfitLoss(item);
@@ -126,8 +190,8 @@ function renderPortfolio() {
       <div>
         <strong>${item.name}</strong><br>
         <small>${item.type} · ${item.symbol} · ${item.isin}</small><br>
-        <small>Units: ${qty}</small><br>
-        <small>Portfolio Weight: ${weight.toFixed(1)}%</small>
+        <small>Units: ${quantity}</small><br>
+        <small>Weight: ${weight.toFixed(1)}%</small>
       </div>
 
       <div>
@@ -150,92 +214,44 @@ function renderPortfolio() {
       <button onclick="startEditAsset(${index})">✏️</button>
       <button onclick="startTransaction(${index})">➕</button>
       <button onclick="toggleHistory(${index})">📜</button>
-      <button onclick="updateSingleAssetPrice(${index})">🔄</button>
       <button onclick="deleteAsset(${index})">❌</button>
     `;
 
     portfolioList.appendChild(asset);
 
     if (editingIndex === index) {
-      const form = document.createElement("div");
-      form.className = "edit-form";
-
-      form.innerHTML = `
-        <input id="editName" value="${item.name}">
-        <input id="editType" value="${item.type}">
-        <input id="editIsin" value="${item.isin}">
-        <input id="editSymbol" value="${item.symbol}">
-        <input id="editQuantity" type="number" value="${item.quantity || 0}">
-        <input id="editBuyPrice" type="number" value="${item.buyPrice || 0}">
-
-        <button onclick="saveEditAsset(${index})">Save</button>
-        <button onclick="cancelEditAsset()">Cancel</button>
-      `;
-
-      portfolioList.appendChild(form);
+      renderEditForm(item, index);
     }
 
     if (transactionIndex === index) {
-      const form = document.createElement("div");
-      form.className = "edit-form";
-
-      form.innerHTML = `
-        <select id="tType">
-          <option value="BUY">BUY</option>
-          <option value="SELL">SELL</option>
-        </select>
-
-        <input id="tDate" type="date">
-        <input id="tQty" type="number" placeholder="Units">
-        <input id="tPrice" type="number" placeholder="Price">
-        <input id="tNote" placeholder="Note">
-
-        <button onclick="saveTransaction(${index})">Save</button>
-        <button onclick="cancelTransaction()">Cancel</button>
-      `;
-
-      portfolioList.appendChild(form);
+      renderTransactionForm(index);
     }
 
     if (historyIndex === index) {
-      const history = document.createElement("div");
-      history.className = "transaction-history";
-
-      const transactions = [...(item.transactions || [])].sort((a, b) => {
-        return new Date(b.date) - new Date(a.date);
-      });
-
-      if (transactions.length === 0) {
-        history.innerHTML = `<p>No transactions yet.</p>`;
-      } else {
-        history.innerHTML = `
-          <h3>Transaction History</h3>
-          ${transactions
-            .map((t) => {
-              const originalIndex = item.transactions.indexOf(t);
-
-              return `
-                <div class="transaction-row">
-                  <div class="${t.type === "BUY" ? "buy" : "sell"}">${t.type}</div>
-                  <div>${t.date}</div>
-                  <div>${t.quantity} Units</div>
-                  <div>${formatEuro(t.price)}</div>
-                  <div>${t.note || "-"}</div>
-                  <button onclick="deleteTransaction(${index}, ${originalIndex})">❌</button>
-                </div>
-              `;
-            })
-            .join("")}
-        `;
-      }
-
-      portfolioList.appendChild(history);
+      renderTransactionHistory(item, index);
     }
   });
 }
 
-function startEditAsset(i) {
-  editingIndex = i;
+function renderEditForm(item, index) {
+  const form = document.createElement("div");
+  form.className = "edit-form";
+
+  form.innerHTML = `
+    <input id="editName" value="${item.name}" />
+    <input id="editType" value="${item.type}" />
+    <input id="editIsin" value="${item.isin}" />
+    <input id="editSymbol" value="${item.symbol}" />
+    <input id="editCurrentPrice" type="number" step="0.01" value="${item.currentPrice}" />
+    <button onclick="saveEditAsset(${index})">Save</button>
+    <button onclick="cancelEditAsset()">Cancel</button>
+  `;
+
+  portfolioList.appendChild(form);
+}
+
+function startEditAsset(index) {
+  editingIndex = index;
   transactionIndex = null;
   historyIndex = null;
   renderPortfolio();
@@ -246,32 +262,53 @@ function cancelEditAsset() {
   renderPortfolio();
 }
 
-function saveEditAsset(i) {
-  const item = portfolio[i];
+function saveEditAsset(index) {
+  const name = document.getElementById("editName").value.trim();
+  const type = document.getElementById("editType").value.trim();
+  const isin = document.getElementById("editIsin").value.trim();
+  const symbol = document.getElementById("editSymbol").value.trim().toUpperCase();
+  const currentPrice = parseFloat(document.getElementById("editCurrentPrice").value);
 
-  item.name = document.getElementById("editName").value.trim();
-  item.type = document.getElementById("editType").value.trim();
-  item.isin = document.getElementById("editIsin").value.trim();
-  item.symbol = document.getElementById("editSymbol").value.trim().toUpperCase();
-  item.quantity = parseFloat(document.getElementById("editQuantity").value);
-  item.buyPrice = parseFloat(document.getElementById("editBuyPrice").value);
-
-  if (!item.name || !item.type || !item.isin || !item.symbol || isNaN(item.quantity) || isNaN(item.buyPrice)) {
+  if (!name || !type || !isin || !symbol || isNaN(currentPrice)) {
     alert("Bitte alle Felder korrekt ausfüllen.");
     return;
   }
 
-  if (!item.currentPrice || isNaN(item.currentPrice)) {
-    item.currentPrice = item.buyPrice;
-  }
+  portfolio[index].name = name;
+  portfolio[index].type = type;
+  portfolio[index].isin = isin;
+  portfolio[index].symbol = symbol;
+  portfolio[index].currentPrice = currentPrice;
 
   editingIndex = null;
   savePortfolio();
   updateDashboard();
 }
 
-function startTransaction(i) {
-  transactionIndex = i;
+function renderTransactionForm(index) {
+  const form = document.createElement("div");
+  form.className = "edit-form";
+
+  form.innerHTML = `
+    <select id="transactionType">
+      <option value="BUY">BUY</option>
+      <option value="SELL">SELL</option>
+    </select>
+
+    <input id="transactionDate" type="date" value="${new Date().toISOString().split("T")[0]}" />
+    <input id="transactionQuantity" type="number" step="0.0001" placeholder="Units" />
+    <input id="transactionPrice" type="number" step="0.01" placeholder="Price" />
+    <input id="transactionNote" placeholder="Note" />
+
+    <button onclick="saveTransaction(${index})">Save</button>
+    <button onclick="cancelTransaction()">Cancel</button>
+  `;
+
+  portfolioList.appendChild(form);
+}
+
+function startTransaction(index) {
+  transactionIndex = index;
   editingIndex = null;
   historyIndex = null;
   renderPortfolio();
@@ -282,35 +319,72 @@ function cancelTransaction() {
   renderPortfolio();
 }
 
-function saveTransaction(i) {
-  const type = document.getElementById("tType").value;
-  const date = document.getElementById("tDate").value;
-  const qty = parseFloat(document.getElementById("tQty").value);
-  const price = parseFloat(document.getElementById("tPrice").value);
-  const note = document.getElementById("tNote").value.trim();
+function saveTransaction(index) {
+  const type = document.getElementById("transactionType").value;
+  const date = document.getElementById("transactionDate").value;
+  const quantity = parseFloat(document.getElementById("transactionQuantity").value);
+  const price = parseFloat(document.getElementById("transactionPrice").value);
+  const note = document.getElementById("transactionNote").value.trim();
 
-  if (!date || isNaN(qty) || isNaN(price)) {
+  if (!date || isNaN(quantity) || isNaN(price)) {
     alert("Bitte Datum, Units und Preis korrekt ausfüllen.");
     return;
   }
 
-  if (!portfolio[i].transactions) {
-    portfolio[i].transactions = [];
+  if (!portfolio[index].transactions) {
+    portfolio[index].transactions = [];
   }
 
-  portfolio[i].transactions.push({
-    type,
-    date,
-    quantity: qty,
-    price,
-    note
+  portfolio[index].transactions.push({
+    type: type,
+    date: date,
+    quantity: quantity,
+    price: price,
+    note: note
   });
 
-  portfolio[i].currentPrice = price;
+  portfolio[index].currentPrice = price;
 
   transactionIndex = null;
   savePortfolio();
   updateDashboard();
+}
+
+function renderTransactionHistory(item, assetIndex) {
+  const history = document.createElement("div");
+  history.className = "transaction-history";
+
+  const transactions = [...(item.transactions || [])].sort((a, b) => {
+    return new Date(b.date) - new Date(a.date);
+  });
+
+  if (transactions.length === 0) {
+    history.innerHTML = "<p>No transactions yet.</p>";
+    portfolioList.appendChild(history);
+    return;
+  }
+
+  history.innerHTML = `
+    <h3>Transaction History</h3>
+    ${transactions
+      .map((transaction) => {
+        const originalIndex = item.transactions.indexOf(transaction);
+
+        return `
+          <div class="transaction-row">
+            <div class="${transaction.type === "BUY" ? "buy" : "sell"}">${transaction.type}</div>
+            <div>${transaction.date}</div>
+            <div>${transaction.quantity} Units</div>
+            <div>${formatEuro(transaction.price)}</div>
+            <div>${transaction.note || "-"}</div>
+            <button onclick="deleteTransaction(${assetIndex}, ${originalIndex})">❌</button>
+          </div>
+        `;
+      })
+      .join("")}
+  `;
+
+  portfolioList.appendChild(history);
 }
 
 function toggleHistory(index) {
@@ -322,7 +396,10 @@ function toggleHistory(index) {
 
 function deleteTransaction(assetIndex, transactionIndexToDelete) {
   const confirmDelete = confirm("Diese Transaction wirklich löschen?");
-  if (!confirmDelete) return;
+
+  if (!confirmDelete) {
+    return;
+  }
 
   portfolio[assetIndex].transactions.splice(transactionIndexToDelete, 1);
 
@@ -330,36 +407,14 @@ function deleteTransaction(assetIndex, transactionIndexToDelete) {
   updateDashboard();
 }
 
-function deleteAsset(i) {
+function deleteAsset(index) {
   const confirmDelete = confirm("Dieses Asset wirklich löschen?");
-  if (!confirmDelete) return;
 
-  portfolio.splice(i, 1);
-  savePortfolio();
-  updateDashboard();
-}
-
-async function updateSingleAssetPrice(i) {
-  const q = await fetchQuote(portfolio[i].symbol);
-
-  if (!q) {
-    alert("Keine Kursdaten gefunden. Prüfe Symbol oder API-Key.");
+  if (!confirmDelete) {
     return;
   }
 
-  portfolio[i].currentPrice = q.c;
-  savePortfolio();
-  updateDashboard();
-}
-
-async function updateAllPrices() {
-  for (let i = 0; i < portfolio.length; i++) {
-    const q = await fetchQuote(portfolio[i].symbol);
-
-    if (q) {
-      portfolio[i].currentPrice = q.c;
-    }
-  }
+  portfolio.splice(index, 1);
 
   savePortfolio();
   updateDashboard();
@@ -368,24 +423,29 @@ async function updateAllPrices() {
 function renderAllocation() {
   allocationList.innerHTML = "";
 
-  const total = portfolio.reduce((sum, item) => {
+  const totalValue = portfolio.reduce((sum, item) => {
     return sum + getCurrentValue(item);
   }, 0);
 
+  if (portfolio.length === 0 || totalValue === 0) {
+    allocationList.innerHTML = "<p>No allocation yet.</p>";
+    return;
+  }
+
   portfolio.forEach((item) => {
     const value = getCurrentValue(item);
-    const percent = total ? (value / total) * 100 : 0;
+    const percent = (value / totalValue) * 100;
 
-    const el = document.createElement("div");
+    const allocationItem = document.createElement("div");
 
-    el.innerHTML = `
+    allocationItem.innerHTML = `
       <strong>${item.type}</strong> - ${percent.toFixed(1)}%
       <div class="allocation-bar">
-        <div class="allocation-fill" style="width:${percent}%"></div>
+        <div class="allocation-fill" style="width: ${percent}%"></div>
       </div>
     `;
 
-    allocationList.appendChild(el);
+    allocationList.appendChild(allocationItem);
   });
 }
 
@@ -422,101 +482,46 @@ function renderAnalysis() {
   portfolioPerformanceElement.className = totalPerformance >= 0 ? "positive" : "negative";
 }
 
-function addAsset() {
-  const nameInput = document.getElementById("name");
-  const typeInput = document.getElementById("type");
-  const isinInput = document.getElementById("isin");
-  const symbolInput = document.getElementById("symbol");
-  const quantityInput = document.getElementById("quantity");
-  const priceInput = document.getElementById("price");
-
-  const name = nameInput.value.trim();
-  const type = typeInput.value.trim();
-  const isin = isinInput.value.trim();
-  const symbol = symbolInput.value.trim().toUpperCase();
-  const quantity = parseFloat(quantityInput.value);
-  const buyPrice = parseFloat(priceInput.value);
-
-  if (!name || !type || !isin || !symbol || isNaN(quantity) || isNaN(buyPrice)) {
-    alert("Bitte alle Felder korrekt ausfüllen.");
-    return;
-  }
-
-  portfolio.push({
-    name,
-    type,
-    isin,
-    symbol,
-    quantity,
-    buyPrice,
-    currentPrice: buyPrice,
-    transactions: [
-      {
-        type: "BUY",
-        date: new Date().toISOString().split("T")[0],
-        quantity,
-        price: buyPrice,
-        note: "Initial buy"
-      }
-    ]
-  });
-
-  savePortfolio();
-
-  nameInput.value = "";
-  typeInput.value = "";
-  isinInput.value = "";
-  symbolInput.value = "";
-  quantityInput.value = "";
-  priceInput.value = "";
-
-  updateDashboard();
-}
-
 function addWatchItem() {
   const input = document.getElementById("watchInput");
   const symbol = input.value.trim().toUpperCase();
 
-  if (!symbol) return;
+  if (!symbol) {
+    alert("Bitte Symbol eingeben.");
+    return;
+  }
 
   watchlist.push(symbol);
   saveWatchlist();
+
   input.value = "";
   renderWatchlist();
 }
 
-function deleteWatchItem(i) {
-  watchlist.splice(i, 1);
+function deleteWatchItem(index) {
+  watchlist.splice(index, 1);
   saveWatchlist();
   renderWatchlist();
 }
 
-async function renderWatchlist() {
+function renderWatchlist() {
   watchList.innerHTML = "";
 
-  for (let i = 0; i < watchlist.length; i++) {
-    const symbol = watchlist[i];
-    const q = await fetchQuote(symbol);
-
-    const li = document.createElement("li");
-
-    if (q) {
-      const changeClass = q.dp >= 0 ? "positive" : "negative";
-
-      li.innerHTML = `
-        <strong>${symbol}</strong> ${q.c}
-        <span class="${changeClass}">(${q.dp.toFixed(2)}%)</span>
-        <button onclick="deleteWatchItem(${i})">❌</button>
-      `;
-    } else {
-      li.innerHTML = `
-        <strong>${symbol}</strong> no data
-        <button onclick="deleteWatchItem(${i})">❌</button>
-      `;
-    }
-
-    watchList.appendChild(li);
+  if (watchlist.length === 0) {
+    watchList.innerHTML = "<li>No watchlist items yet.</li>";
+    return;
   }
+
+  watchlist.forEach((symbol, index) => {
+    const item = document.createElement("li");
+
+    item.innerHTML = `
+      <strong>${symbol}</strong>
+      <button onclick="deleteWatchItem(${index})">❌</button>
+    `;
+
+    watchList.appendChild(item);
+  });
 }
 
 function updateDashboard() {

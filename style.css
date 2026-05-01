@@ -10,70 +10,87 @@ body {
 }
 
 .app {
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 24px;
 }
 
-header {
-  margin-bottom: 32px;
+.header {
+  margin-bottom: 28px;
 }
 
-header h1 {
+.header h1 {
   margin-bottom: 8px;
+}
+
+.header p {
+  color: #94a3b8;
 }
 
 .cards {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 18px;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 }
 
 .card,
-.asset {
+.panel,
+.asset,
+.transaction-history,
+.edit-form {
   background: #111827;
   border: 1px solid #1f2937;
   border-radius: 18px;
   padding: 20px;
 }
 
+.card h2,
+.panel h2 {
+  margin-top: 0;
+}
+
 .card p {
-  font-size: 28px;
+  font-size: 26px;
   font-weight: bold;
 }
 
-.portfolio {
-  margin-top: 20px;
+.form-grid,
+.edit-form {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+input,
+select {
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #334155;
+  background: #020617;
+  color: #e5e7eb;
+}
+
+button {
+  padding: 10px 14px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.primary-btn {
+  background: #22c55e;
+  color: #022c22;
 }
 
 .asset {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr 1fr 1fr auto auto auto auto;
   gap: 12px;
-  margin-bottom: 12px;
   align-items: center;
-}
-
-.add-asset {
-  margin-bottom: 30px;
-  display: grid;
-  gap: 10px;
-}
-
-.add-asset input {
-  padding: 10px;
-  border-radius: 8px;
-  border: none;
-}
-
-.add-asset button {
-  padding: 12px;
-  background: #22c55e;
-  border: none;
-  border-radius: 10px;
-  font-weight: bold;
-  cursor: pointer;
+  margin-bottom: 12px;
 }
 
 .positive {
@@ -84,16 +101,13 @@ header h1 {
   color: #ef4444;
 }
 
-#allocationList div {
-  margin-bottom: 12px;
-}
-
 .allocation-bar {
   height: 10px;
   background: #334155;
   border-radius: 999px;
   overflow: hidden;
   margin-top: 6px;
+  margin-bottom: 12px;
 }
 
 .allocation-fill {
@@ -101,44 +115,25 @@ header h1 {
   background: #22c55e;
 }
 
-#watchInput {
-  width: 100%;
-  padding: 10px;
-  border-radius: 8px;
-  border: none;
-  margin-bottom: 10px;
+.watch-form {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
 }
 
-.card button,
-.asset button {
-  padding: 8px 12px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
+.watch-form input {
+  flex: 1;
 }
 
-.edit-form {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 8px;
-  margin-top: 12px;
+#watchList {
+  padding-left: 18px;
 }
 
-.edit-form input {
-  padding: 8px;
-  border-radius: 8px;
-  border: none;
-}
-
-.asset {
-  grid-template-columns: 2fr 1fr 1fr 1fr auto auto;
+#watchList li {
+  margin-bottom: 8px;
 }
 
 .transaction-history {
-  background: #020617;
-  border: 1px solid #1e293b;
-  border-radius: 14px;
-  padding: 14px;
   margin-bottom: 16px;
 }
 
@@ -162,14 +157,16 @@ header h1 {
   color: #ef4444;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
+  .cards,
+  .form-grid,
+  .edit-form,
+  .asset,
   .transaction-row {
     grid-template-columns: 1fr;
   }
-}
-@media (max-width: 768px) {
-  .cards,
-  .asset {
-    grid-template-columns: 1fr;
+
+  .watch-form {
+    flex-direction: column;
   }
 }
