@@ -67,6 +67,46 @@ body {
   letter-spacing: 0.3px;
 }
 
+.theme-toggle {
+  width: auto;
+  margin-top: 22px;
+  padding: 12px 20px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #b08d57, #7a5a2e);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+}
+
+body.luxury-mode {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.05), transparent 34%),
+    radial-gradient(circle at 80% 30%, rgba(176, 141, 87, 0.12), transparent 36%),
+    linear-gradient(135deg, #21150f 0%, #3a261c 45%, #120c09 100%);
+  color: #f7efe3;
+}
+
+body.luxury-mode .app-header {
+  background:
+    linear-gradient(135deg, rgba(18, 12, 9, 0.96), rgba(58, 38, 28, 0.94));
+}
+
+body.luxury-mode .card {
+  background: rgba(255, 248, 238, 0.92);
+  border: 1px solid rgba(176, 141, 87, 0.35);
+}
+
+body.luxury-mode .stat-card {
+  background: linear-gradient(145deg, #fff8ee, #eadcc8);
+}
+
+body.luxury-mode th {
+  background: #eadcc8;
+}
+
+body.luxury-mode tr:hover td {
+  background: #fff3df;
+}
 .container {
   width: min(1180px, 94%);
   margin: -34px auto 40px;

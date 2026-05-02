@@ -376,3 +376,21 @@ function deleteInvestment(id) {
 }
 
 renderApp();
+
+const themeToggle = document.getElementById("themeToggle");
+
+const savedTheme = localStorage.getItem("theme");
+
+if (savedTheme === "luxury") {
+  document.body.classList.add("luxury-mode");
+  themeToggle.textContent = "Classic Mode";
+}
+
+themeToggle.addEventListener("click", function () {
+  document.body.classList.toggle("luxury-mode");
+
+  const isLuxury = document.body.classList.contains("luxury-mode");
+
+  localStorage.setItem("theme", isLuxury ? "luxury" : "classic");
+  themeToggle.textContent = isLuxury ? "Classic Mode" : "Luxury Mode";
+});
