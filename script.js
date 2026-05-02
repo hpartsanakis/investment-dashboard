@@ -21,6 +21,8 @@ const totalValueEl = document.getElementById("totalValue");
 const totalProfitEl = document.getElementById("totalProfit");
 const totalReturnEl = document.getElementById("totalReturn");
 
+const themeToggle = document.getElementById("themeToggle");
+
 let allocationChart;
 let growthChart;
 let investedChart;
@@ -36,7 +38,7 @@ function formatEuro(value) {
   return new Intl.NumberFormat("de-DE", {
     style: "currency",
     currency: "EUR"
-  }).format(value);
+  }).format(value || 0);
 }
 
 function getAssetById(id) {
@@ -101,7 +103,8 @@ function renderAssets() {
       <td>${formatEuro(value)}</td>
       <td>${allocation.toFixed(2)}%</td>
       <td class="action-buttons">
-        <button class="edit-btn" onclick="editAsset('${asset.id}')">Edit</button>
+        <button class="edit-btn" onclick="editAsset('${asset.id}')">Edit Asset</button>
+        <button class="edit-btn" onclick="editLatestSnapshot('${asset.id}')">Edit Value</button>
         <button class="delete-btn" onclick="deleteAsset('${asset.id}')">Delete</button>
       </td>
     `;
@@ -124,6 +127,8 @@ function renderInvestments() {
       <td>${inv.date}</td>
       <td>${asset ? asset.name : "Unknown asset"}</td>
       <td>${formatEuro(inv.amount)}</td>
+      <td>${inv.units ? inv.units.toFixed(4) : "-"}</td>
+      <td>${inv.buyPrice ? formatEuro(inv.buyPrice) : "-"}</td>
       <td>${formatEuro(inv.currentValue)}</td>
       <td class="${profitClass}">${formatEuro(profit)}</td>
       <td class="action-buttons">
@@ -157,7 +162,9 @@ function renderAllocationChart() {
 
   const ctx = document.getElementById("allocationChart");
 
-  if (allocationChart) allocationChart.destroy();
+  if (allocationChart) {
+    allocationChart.destroy();
+  }
 
   allocationChart = new Chart(ctx, {
     type: "doughnut",
@@ -209,13 +216,21 @@ function renderGrowthChart() {
 
   const ctx = document.getElementById("growthChart");
 
-  if (growthChart) growthChart.destroy();
+  if (growthChart) {
+    growthChart.destroy();
+  }
 
   growthChart = new Chart(ctx, {
     type: "line",
     data: {
       labels,
-      datasets: [{ label: "Portfolio Value", data, tension: 0.3 }]
+      datasets: [
+        {
+          label: "Portfolio Value",
+          data,
+          tension: 0.3
+        }
+      ]
     }
   });
 }
@@ -226,13 +241,20 @@ function renderInvestedChart() {
 
   const ctx = document.getElementById("investedChart");
 
-  if (investedChart) investedChart.destroy();
+  if (investedChart) {
+    investedChart.destroy();
+  }
 
   investedChart = new Chart(ctx, {
     type: "bar",
     data: {
       labels: ["Invested", "Current Value"],
-      datasets: [{ label: "€", data: [invested, currentValue] }]
+      datasets: [
+        {
+          label: "€",
+          data: [invested, currentValue]
+        }
+      ]
     }
   });
 }
@@ -248,13 +270,21 @@ function renderProfitChart() {
 
   const ctx = document.getElementById("profitChart");
 
-  if (profitChart) profitChart.destroy();
+  if (profitChart) {
+    profitChart.destroy();
+  }
 
   profitChart = new Chart(ctx, {
     type: "line",
     data: {
       labels,
-      datasets: [{ label: "Profit / Loss", data, tension: 0.3 }]
+      datasets: [
+        {
+          label: "Profit / Loss",
+          data,
+          tension: 0.3
+        }
+      ]
     }
   });
 }
@@ -269,8 +299,6 @@ function renderApp() {
   renderInvestedChart();
   renderProfitChart();
 }
-
-/* ASSET CREATE / UPDATE */
 
 assetForm.addEventListener("submit", function (e) {
   e.preventDefault();
@@ -325,15 +353,20 @@ function deleteAsset(id) {
   renderApp();
 }
 
-/* INVESTMENT CREATE / UPDATE */
-
 investmentForm.addEventListener("submit", function (e) {
   e.preventDefault();
 
+  const amount = Number(document.getElementById("investmentAmount").value);
+  const buyPrice = Number(document.getElementById("investmentBuyPrice").value);
+  const currentValue = Number(document.getElementById("investmentCurrentValue").value);
+  const units = amount / buyPrice;
+
   const investmentData = {
     assetId: investmentAsset.value,
-    amount: Number(document.getElementById("investmentAmount").value),
-    currentValue: Number(document.getElementById("investmentCurrentValue").value),
+    amount,
+    buyPrice,
+    units,
+    currentValue,
     date: document.getElementById("investmentDate").value
   };
 
@@ -371,6 +404,7 @@ function editInvestment(id) {
 
   investmentAsset.value = inv.assetId;
   document.getElementById("investmentAmount").value = inv.amount;
+  document.getElementById("investmentBuyPrice").value = inv.buyPrice || "";
   document.getElementById("investmentCurrentValue").value = inv.currentValue;
   document.getElementById("investmentDate").value = inv.date;
 
@@ -384,8 +418,6 @@ function deleteInvestment(id) {
   saveData();
   renderApp();
 }
-
-/* SNAPSHOT CREATE / UPDATE */
 
 valueUpdateForm.addEventListener("submit", function (e) {
   e.preventDefault();
@@ -431,5 +463,21 @@ function editLatestSnapshot(assetId) {
   valueUpdateForm.querySelector("button").textContent = "Update Snapshot";
   window.scrollTo({ top: valueUpdateForm.offsetTop - 120, behavior: "smooth" });
 }
+
+const savedTheme = localStorage.getItem("theme");
+
+if (savedTheme === "luxury") {
+  document.body.classList.add("luxury-mode");
+  themeToggle.textContent = "Classic Mode";
+}
+
+themeToggle.addEventListener("click", function () {
+  document.body.classList.toggle("luxury-mode");
+
+  const isLuxury = document.body.classList.contains("luxury-mode");
+
+  localStorage.setItem("theme", isLuxury ? "luxury" : "classic");
+  themeToggle.textContent = isLuxury ? "Classic Mode" : "Luxury Mode";
+});
 
 renderApp();

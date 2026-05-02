@@ -8,7 +8,7 @@
   --surface-solid: #ffffff;
   --text: #1f2933;
   --muted: #6b7280;
-  --dark: #c8ceda;
+  --dark: #111827;
   --border: rgba(31, 41, 55, 0.12);
   --gold: #b08d57;
   --gold-dark: #8c6d3f;
@@ -20,30 +20,18 @@
 body {
   margin: 0;
   font-family: "Inter", sans-serif;
-
   background:
-    radial-gradient(
-      circle at 20% 20%,
-      rgba(255, 255, 255, 0.04),
-      transparent 40%
-    ),
-    radial-gradient(
-      circle at 80% 30%,
-      rgba(255, 255, 255, 0.03),
-      transparent 40%
-    ),
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.04), transparent 40%),
+    radial-gradient(circle at 80% 30%, rgba(255, 255, 255, 0.03), transparent 40%),
     linear-gradient(135deg, #2b1f18 0%, #3a2a22 40%, #1c1410 100%);
-  color: #f5f5f5;
+  color: var(--text);
   min-height: 100vh;
 }
 
 .app-header {
   position: relative;
   background:
-    linear-gradient(135deg, rgba(17, 24, 39, 0.96), rgba(42, 37, 31, 0.94)),
-    url("https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1600&q=80");
-  background-size: cover;
-  background-position: center;
+    linear-gradient(135deg, rgba(17, 24, 39, 0.96), rgba(42, 37, 31, 0.94));
   color: white;
   padding: 54px 20px 62px;
   text-align: center;
@@ -86,46 +74,6 @@ body {
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
 }
 
-body.luxury-mode {
-  background:
-    radial-gradient(
-      circle at 20% 20%,
-      rgba(255, 255, 255, 0.05),
-      transparent 34%
-    ),
-    radial-gradient(
-      circle at 80% 30%,
-      rgba(176, 141, 87, 0.12),
-      transparent 36%
-    ),
-    linear-gradient(135deg, #21150f 0%, #3a261c 45%, #120c09 100%);
-  color: #f7efe3;
-}
-
-body.luxury-mode .app-header {
-  background: linear-gradient(
-    135deg,
-    rgba(18, 12, 9, 0.96),
-    rgba(58, 38, 28, 0.94)
-  );
-}
-
-body.luxury-mode .card {
-  background: rgba(255, 248, 238, 0.92);
-  border: 1px solid rgba(176, 141, 87, 0.35);
-}
-
-body.luxury-mode .stat-card {
-  background: linear-gradient(145deg, #fff8ee, #eadcc8);
-}
-
-body.luxury-mode th {
-  background: #eadcc8;
-}
-
-body.luxury-mode tr:hover td {
-  background: #fff3df;
-}
 .container {
   width: min(1180px, 94%);
   margin: -34px auto 40px;
@@ -134,14 +82,7 @@ body.luxury-mode tr:hover td {
 }
 
 .card {
-  background:
-    radial-gradient(
-      circle at 30% 20%,
-      rgba(255, 255, 255, 0.05),
-      transparent 30%
-    ),
-    radial-gradient(circle at 70% 60%, rgba(0, 0, 0, 0.2), transparent 40%),
-    linear-gradient(135deg, #2a1c16, #3b2a23, #1a120f);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(18px);
   border: 1px solid var(--border);
   border-radius: 24px;
@@ -236,6 +177,18 @@ button:hover {
   box-shadow: 0 12px 24px rgba(17, 24, 39, 0.18);
 }
 
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.edit-btn {
+  background: linear-gradient(135deg, #b08d57, #7a5a2e);
+  padding: 9px 12px;
+  font-size: 13px;
+}
+
 .delete-btn {
   background: linear-gradient(135deg, #991b1b, #dc2626);
   padding: 9px 12px;
@@ -250,7 +203,7 @@ button:hover {
 
 table {
   width: 100%;
-  min-width: 880px;
+  min-width: 980px;
   border-collapse: collapse;
   background: var(--surface-solid);
 }
@@ -261,7 +214,6 @@ td {
   border-bottom: 1px solid #edf0f3;
   text-align: left;
   font-size: 14px;
-  color: var(--text);
 }
 
 th {
@@ -290,6 +242,35 @@ canvas {
   max-height: 360px;
 }
 
+body.luxury-mode {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.05), transparent 34%),
+    radial-gradient(circle at 80% 30%, rgba(176, 141, 87, 0.12), transparent 36%),
+    linear-gradient(135deg, #21150f 0%, #3a261c 45%, #120c09 100%);
+}
+
+body.luxury-mode .app-header {
+  background:
+    linear-gradient(135deg, rgba(18, 12, 9, 0.96), rgba(58, 38, 28, 0.94));
+}
+
+body.luxury-mode .card {
+  background: rgba(255, 248, 238, 0.92);
+  border: 1px solid rgba(176, 141, 87, 0.35);
+}
+
+body.luxury-mode .stat-card {
+  background: linear-gradient(145deg, #fff8ee, #eadcc8);
+}
+
+body.luxury-mode th {
+  background: #eadcc8;
+}
+
+body.luxury-mode tr:hover td {
+  background: #fff3df;
+}
+
 @media (max-width: 900px) {
   .container {
     margin-top: -24px;
@@ -309,19 +290,4 @@ canvas {
   .stat-card strong {
     font-size: 26px;
   }
-}
-
-.action-buttons {
-  display: flex;
-  gap: 8px;
-}
-
-.edit-btn {
-  background: linear-gradient(135deg, #b08d57, #7a5a2e);
-  padding: 9px 12px;
-  font-size: 13px;
-}
-
-.edit-btn:hover {
-  background: linear-gradient(135deg, #c9a96a, #8c6d3f);
 }

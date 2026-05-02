@@ -1,20 +1,25 @@
 <!doctype html>
-<html lang="el">
+<html lang="de">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>Investment Dashboard</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
   <header class="app-header">
     <h1>Investment Dashboard</h1>
     <p>Real portfolio tracking with assets, investments and snapshots</p>
+
     <button id="themeToggle" class="theme-toggle" type="button">
-  Luxury Mode
-</button>
+      Luxury Mode
+    </button>
   </header>
 
   <main class="container">
@@ -68,6 +73,7 @@
               <th>Action</th>
             </tr>
           </thead>
+
           <tbody id="assetsTable"></tbody>
         </table>
       </div>
@@ -81,7 +87,8 @@
           <option value="">Select asset</option>
         </select>
 
-        <input id="investmentAmount" type="number" step="0.01" placeholder="Amount invested €" required />
+        <input id="investmentAmount" type="number" step="0.01" placeholder="Investment Amount €" required />
+        <input id="investmentBuyPrice" type="number" step="0.01" placeholder="Kaufpreis pro Stück €" required />
         <input id="investmentCurrentValue" type="number" step="0.01" placeholder="Current value €" required />
         <input id="investmentDate" type="date" required />
 
@@ -114,11 +121,14 @@
               <th>Date</th>
               <th>Asset</th>
               <th>Invested</th>
-              <th>Start Value</th>
+              <th>Units</th>
+              <th>Buy Price</th>
+              <th>Current Value</th>
               <th>Profit / Loss</th>
               <th>Action</th>
             </tr>
           </thead>
+
           <tbody id="investmentsTable"></tbody>
         </table>
       </div>
