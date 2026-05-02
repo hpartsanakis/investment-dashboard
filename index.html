@@ -1,139 +1,148 @@
-<!DOCTYPE html>
-<html lang="de">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Investment Dashboard</title>
-    <link rel="stylesheet" href="style.css" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  </head>
+<!doctype html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Investment Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <h1>Investment Dashboard</h1>
+    <p>Real portfolio tracking with assets, investments and snapshots</p>
+  </header>
 
-  <body>
-    <main class="app">
-      <h1>Investment Dashboard</h1>
+  <main class="container">
+    <section class="overview-grid">
+      <div class="card stat-card">
+        <span>Total Invested</span>
+        <strong id="totalInvested">0€</strong>
+      </div>
 
-      <!-- 🔹 ASSET ANLEGEN -->
-      <section class="card">
-        <h2>Asset anlegen</h2>
+      <div class="card stat-card">
+        <span>Total Current Value</span>
+        <strong id="totalValue">0€</strong>
+      </div>
 
-        <label>Name</label>
-        <input type="text" id="assetName" placeholder="z.B. FTSE All World ETF" />
+      <div class="card stat-card">
+        <span>Profit / Loss</span>
+        <strong id="totalProfit">0€</strong>
+      </div>
 
-        <label>WKN</label>
-        <input type="text" id="assetWkn" placeholder="z.B. A2PKXG" />
+      <div class="card stat-card">
+        <span>Return</span>
+        <strong id="totalReturn">0%</strong>
+      </div>
+    </section>
 
-        <label>ISIN</label>
-        <input type="text" id="assetIsin" placeholder="z.B. IE00BK5BQT80" />
+    <section class="card">
+      <h2>Add Asset</h2>
 
-        <label>Ticker</label>
-        <input type="text" id="assetTicker" placeholder="z.B. VWCE" />
+      <form id="assetForm" class="form-grid">
+        <input id="assetName" type="text" placeholder="Name" required />
+        <input id="assetWkn" type="text" placeholder="WKN" />
+        <input id="assetIsin" type="text" placeholder="ISIN" required />
+        <input id="assetTicker" type="text" placeholder="Ticker" />
+        <button type="submit">Save Asset</button>
+      </form>
+    </section>
 
-        <button type="button" id="addAsset">Asset speichern</button>
-      </section>
+    <section class="card">
+      <h2>Assets</h2>
 
-      <!-- 🔹 ASSET LISTE -->
-      <section class="card">
-  <h2>Gespeicherte Assets</h2>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>WKN</th>
+              <th>ISIN</th>
+              <th>Ticker</th>
+              <th>Value</th>
+              <th>Allocation</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="assetsTable"></tbody>
+        </table>
+      </div>
+    </section>
 
-  <table id="assetTable">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>WKN</th>
-        <th>ISIN</th>
-        <th>Ticker</th>
-        <th>Aktionen</th>
-      </tr>
-    </thead>
-    <tbody id="assetTableBody"></tbody>
-  </table>
-</section>
+    <section class="card">
+      <h2>Add Investment</h2>
 
-      <!-- 🔹 INVESTMENT -->
-      <section class="card">
-        <h2>Investment hinzufügen</h2>
+      <form id="investmentForm" class="form-grid">
+        <select id="investmentAsset" required>
+          <option value="">Select asset</option>
+        </select>
 
-        <label>Asset auswählen</label>
-        <select id="investmentAsset"></select>
+        <input id="investmentAmount" type="number" step="0.01" placeholder="Amount invested €" required />
+        <input id="investmentCurrentValue" type="number" step="0.01" placeholder="Current value €" required />
+        <input id="investmentDate" type="date" required />
 
-        <label>Monatliche Investition (€)</label>
-        <input type="number" id="monthlyInvestment" placeholder="z.B. 500" />
+        <button type="submit">Add Investment</button>
+      </form>
+    </section>
 
-        <label>Kaufpreis pro Stück (€)</label>
-        <input type="number" id="buyPrice" placeholder="z.B. 100" />
+    <section class="card">
+      <h2>Update Asset Value</h2>
 
-        <label>Aktueller Preis (€)</label>
-        <input type="number" id="currentPrice" placeholder="z.B. 110" />
+      <form id="valueUpdateForm" class="form-grid">
+        <select id="valueAsset" required>
+          <option value="">Select asset</option>
+        </select>
 
-        <label>Gekaufte Units</label>
-        <input type="number" id="units" readonly />
+        <input id="newCurrentValue" type="number" step="0.01" placeholder="New current value €" required />
+        <input id="valueDate" type="date" required />
 
-        <button type="button" id="addInvestment">Investment hinzufügen</button>
-        <button type="button" id="resetAll">Alle Investments löschen</button>
-      </section>
+        <button type="submit">Save Snapshot</button>
+      </form>
+    </section>
 
-      <!-- 🔹 PORTFOLIO -->
-     <section class="card">
-  <h2>Portfolio Übersicht</h2>
+    <section class="card">
+      <h2>Investments</h2>
 
-  <table id="portfolioTable">
-    <thead>
-      <tr>
-        <th>Asset</th>
-        <th>Investiert (€)</th>
-        <th>Wert (€)</th>
-        <th>Gewinn / Verlust (€)</th>
-        <th>Units</th>
-      </tr>
-    </thead>
-    <tbody id="portfolioTableBody"></tbody>
-    <tfoot>
-      <tr>
-        <th>GESAMT</th>
-        <th id="totalInvested">0.00 €</th>
-        <th id="totalValue">0.00 €</th>
-        <th id="totalProfit">0.00 €</th>
-        <th id="totalUnits">0.0000</th>
-      </tr>
-    </tfoot>
-  </table>
-</section>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Asset</th>
+              <th>Invested</th>
+              <th>Start Value</th>
+              <th>Profit / Loss</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="investmentsTable"></tbody>
+        </table>
+      </div>
+    </section>
 
-<section class="card">
-  <h2>Charts</h2>
+    <section class="charts-grid">
+      <div class="card">
+        <h2>Allocation</h2>
+        <canvas id="allocationChart"></canvas>
+      </div>
 
-  <h3>Gesamtentwicklung</h3>
-  <canvas id="totalChart"></canvas>
+      <div class="card">
+        <h2>Portfolio Value Over Time</h2>
+        <canvas id="growthChart"></canvas>
+      </div>
 
-  <h3>Wert pro Asset</h3>
-  <canvas id="assetChart"></canvas>
-</section>
+      <div class="card">
+        <h2>Invested vs Current Value</h2>
+        <canvas id="investedChart"></canvas>
+      </div>
 
-      <!-- 🔹 INVESTMENT LISTE -->
-      <section class="card">
-  <h2>Investments</h2>
+      <div class="card">
+        <h2>Profit / Loss Over Time</h2>
+        <canvas id="profitChart"></canvas>
+      </div>
+    </section>
+  </main>
 
-  <table id="investmentTable">
-    <thead>
-      <tr>
-        <th>Datum</th>
-        <th>Asset</th>
-        <th>WKN</th>
-        <th>ISIN</th>
-        <th>Ticker</th>
-        <th>Investiert (€)</th>
-        <th>Kaufpreis (€)</th>
-        <th>Aktueller Preis (€)</th>
-        <th>Units</th>
-        <th>Wert (€)</th>
-        <th>Gewinn / Verlust (€)</th>
-      </tr>
-    </thead>
-    <tbody id="investmentTableBody"></tbody>
-  </table>
-</section>
-    </main>
-
-    <script src="script.js"></script>
-  </body>
+  <script src="script.js"></script>
+</body>
 </html>
