@@ -2,6 +2,10 @@ let assets = JSON.parse(localStorage.getItem("assets")) || [];
 let investments = JSON.parse(localStorage.getItem("investments")) || [];
 let snapshots = JSON.parse(localStorage.getItem("snapshots")) || [];
 
+let editingAssetId = null;
+let editingInvestmentId = null;
+let editingSnapshotId = null;
+
 const assetForm = document.getElementById("assetForm");
 const investmentForm = document.getElementById("investmentForm");
 const valueUpdateForm = document.getElementById("valueUpdateForm");
@@ -96,10 +100,9 @@ function renderAssets() {
       <td>${asset.ticker || "-"}</td>
       <td>${formatEuro(value)}</td>
       <td>${allocation.toFixed(2)}%</td>
-      <td>
-        <button class="delete-btn" onclick="deleteAsset('${asset.id}')">
-          Delete
-        </button>
+      <td class="action-buttons">
+        <button class="edit-btn" onclick="editAsset('${asset.id}')">Edit</button>
+        <button class="delete-btn" onclick="deleteAsset('${asset.id}')">Delete</button>
       </td>
     `;
 
@@ -123,10 +126,9 @@ function renderInvestments() {
       <td>${formatEuro(inv.amount)}</td>
       <td>${formatEuro(inv.currentValue)}</td>
       <td class="${profitClass}">${formatEuro(profit)}</td>
-      <td>
-        <button class="delete-btn" onclick="deleteInvestment('${inv.id}')">
-          Delete
-        </button>
+      <td class="action-buttons">
+        <button class="edit-btn" onclick="editInvestment('${inv.id}')">Edit</button>
+        <button class="delete-btn" onclick="deleteInvestment('${inv.id}')">Delete</button>
       </td>
     `;
 
@@ -155,19 +157,13 @@ function renderAllocationChart() {
 
   const ctx = document.getElementById("allocationChart");
 
-  if (allocationChart) {
-    allocationChart.destroy();
-  }
+  if (allocationChart) allocationChart.destroy();
 
   allocationChart = new Chart(ctx, {
     type: "doughnut",
     data: {
       labels,
-      datasets: [
-        {
-          data
-        }
-      ]
+      datasets: [{ data }]
     }
   });
 }
@@ -213,24 +209,13 @@ function renderGrowthChart() {
 
   const ctx = document.getElementById("growthChart");
 
-  if (growthChart) {
-    growthChart.destroy();
-  }
+  if (growthChart) growthChart.destroy();
 
   growthChart = new Chart(ctx, {
     type: "line",
     data: {
       labels,
-      datasets: [
-        {
-          label: "Portfolio Value",
-          data,
-          tension: 0.3
-        }
-      ]
-    },
-    options: {
-      responsive: true
+      datasets: [{ label: "Portfolio Value", data, tension: 0.3 }]
     }
   });
 }
@@ -241,20 +226,13 @@ function renderInvestedChart() {
 
   const ctx = document.getElementById("investedChart");
 
-  if (investedChart) {
-    investedChart.destroy();
-  }
+  if (investedChart) investedChart.destroy();
 
   investedChart = new Chart(ctx, {
     type: "bar",
     data: {
       labels: ["Invested", "Current Value"],
-      datasets: [
-        {
-          label: "€",
-          data: [invested, currentValue]
-        }
-      ]
+      datasets: [{ label: "€", data: [invested, currentValue] }]
     }
   });
 }
@@ -270,21 +248,13 @@ function renderProfitChart() {
 
   const ctx = document.getElementById("profitChart");
 
-  if (profitChart) {
-    profitChart.destroy();
-  }
+  if (profitChart) profitChart.destroy();
 
   profitChart = new Chart(ctx, {
     type: "line",
     data: {
       labels,
-      datasets: [
-        {
-          label: "Profit / Loss",
-          data,
-          tension: 0.3
-        }
-      ]
+      datasets: [{ label: "Profit / Loss", data, tension: 0.3 }]
     }
   });
 }
@@ -300,64 +270,51 @@ function renderApp() {
   renderProfitChart();
 }
 
+/* ASSET CREATE / UPDATE */
+
 assetForm.addEventListener("submit", function (e) {
   e.preventDefault();
 
-  const newAsset = {
-    id: crypto.randomUUID(),
+  const assetData = {
     name: document.getElementById("assetName").value.trim(),
     wkn: document.getElementById("assetWkn").value.trim(),
     isin: document.getElementById("assetIsin").value.trim(),
     ticker: document.getElementById("assetTicker").value.trim()
   };
 
-  assets.push(newAsset);
+  if (editingAssetId) {
+    assets = assets.map(asset =>
+      asset.id === editingAssetId ? { ...asset, ...assetData } : asset
+    );
+
+    editingAssetId = null;
+    assetForm.querySelector("button").textContent = "Save Asset";
+  } else {
+    assets.push({
+      id: crypto.randomUUID(),
+      ...assetData
+    });
+  }
+
   saveData();
   assetForm.reset();
   renderApp();
 });
 
-investmentForm.addEventListener("submit", function (e) {
-  e.preventDefault();
+function editAsset(id) {
+  const asset = getAssetById(id);
+  if (!asset) return;
 
-  const newInvestment = {
-    id: crypto.randomUUID(),
-    assetId: investmentAsset.value,
-    amount: Number(document.getElementById("investmentAmount").value),
-    currentValue: Number(document.getElementById("investmentCurrentValue").value),
-    date: document.getElementById("investmentDate").value
-  };
+  editingAssetId = id;
 
-  investments.push(newInvestment);
+  document.getElementById("assetName").value = asset.name;
+  document.getElementById("assetWkn").value = asset.wkn;
+  document.getElementById("assetIsin").value = asset.isin;
+  document.getElementById("assetTicker").value = asset.ticker;
 
-  snapshots.push({
-    id: crypto.randomUUID(),
-    assetId: investmentAsset.value,
-    value: Number(document.getElementById("investmentCurrentValue").value),
-    date: document.getElementById("investmentDate").value
-  });
-
-  saveData();
-  investmentForm.reset();
-  renderApp();
-});
-
-valueUpdateForm.addEventListener("submit", function (e) {
-  e.preventDefault();
-
-  const newSnapshot = {
-    id: crypto.randomUUID(),
-    assetId: valueAsset.value,
-    value: Number(document.getElementById("newCurrentValue").value),
-    date: document.getElementById("valueDate").value
-  };
-
-  snapshots.push(newSnapshot);
-
-  saveData();
-  valueUpdateForm.reset();
-  renderApp();
-});
+  assetForm.querySelector("button").textContent = "Update Asset";
+  window.scrollTo({ top: assetForm.offsetTop - 120, behavior: "smooth" });
+}
 
 function deleteAsset(id) {
   assets = assets.filter(asset => asset.id !== id);
@@ -368,6 +325,59 @@ function deleteAsset(id) {
   renderApp();
 }
 
+/* INVESTMENT CREATE / UPDATE */
+
+investmentForm.addEventListener("submit", function (e) {
+  e.preventDefault();
+
+  const investmentData = {
+    assetId: investmentAsset.value,
+    amount: Number(document.getElementById("investmentAmount").value),
+    currentValue: Number(document.getElementById("investmentCurrentValue").value),
+    date: document.getElementById("investmentDate").value
+  };
+
+  if (editingInvestmentId) {
+    investments = investments.map(inv =>
+      inv.id === editingInvestmentId ? { ...inv, ...investmentData } : inv
+    );
+
+    editingInvestmentId = null;
+    investmentForm.querySelector("button").textContent = "Add Investment";
+  } else {
+    investments.push({
+      id: crypto.randomUUID(),
+      ...investmentData
+    });
+
+    snapshots.push({
+      id: crypto.randomUUID(),
+      assetId: investmentData.assetId,
+      value: investmentData.currentValue,
+      date: investmentData.date
+    });
+  }
+
+  saveData();
+  investmentForm.reset();
+  renderApp();
+});
+
+function editInvestment(id) {
+  const inv = investments.find(item => item.id === id);
+  if (!inv) return;
+
+  editingInvestmentId = id;
+
+  investmentAsset.value = inv.assetId;
+  document.getElementById("investmentAmount").value = inv.amount;
+  document.getElementById("investmentCurrentValue").value = inv.currentValue;
+  document.getElementById("investmentDate").value = inv.date;
+
+  investmentForm.querySelector("button").textContent = "Update Investment";
+  window.scrollTo({ top: investmentForm.offsetTop - 120, behavior: "smooth" });
+}
+
 function deleteInvestment(id) {
   investments = investments.filter(inv => inv.id !== id);
 
@@ -375,22 +385,51 @@ function deleteInvestment(id) {
   renderApp();
 }
 
-renderApp();
+/* SNAPSHOT CREATE / UPDATE */
 
-const themeToggle = document.getElementById("themeToggle");
+valueUpdateForm.addEventListener("submit", function (e) {
+  e.preventDefault();
 
-const savedTheme = localStorage.getItem("theme");
+  const snapshotData = {
+    assetId: valueAsset.value,
+    value: Number(document.getElementById("newCurrentValue").value),
+    date: document.getElementById("valueDate").value
+  };
 
-if (savedTheme === "luxury") {
-  document.body.classList.add("luxury-mode");
-  themeToggle.textContent = "Classic Mode";
+  if (editingSnapshotId) {
+    snapshots = snapshots.map(snapshot =>
+      snapshot.id === editingSnapshotId ? { ...snapshot, ...snapshotData } : snapshot
+    );
+
+    editingSnapshotId = null;
+    valueUpdateForm.querySelector("button").textContent = "Save Snapshot";
+  } else {
+    snapshots.push({
+      id: crypto.randomUUID(),
+      ...snapshotData
+    });
+  }
+
+  saveData();
+  valueUpdateForm.reset();
+  renderApp();
+});
+
+function editLatestSnapshot(assetId) {
+  const latestSnapshot = snapshots
+    .filter(snapshot => snapshot.assetId === assetId)
+    .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+
+  if (!latestSnapshot) return;
+
+  editingSnapshotId = latestSnapshot.id;
+
+  valueAsset.value = latestSnapshot.assetId;
+  document.getElementById("newCurrentValue").value = latestSnapshot.value;
+  document.getElementById("valueDate").value = latestSnapshot.date;
+
+  valueUpdateForm.querySelector("button").textContent = "Update Snapshot";
+  window.scrollTo({ top: valueUpdateForm.offsetTop - 120, behavior: "smooth" });
 }
 
-themeToggle.addEventListener("click", function () {
-  document.body.classList.toggle("luxury-mode");
-
-  const isLuxury = document.body.classList.contains("luxury-mode");
-
-  localStorage.setItem("theme", isLuxury ? "luxury" : "classic");
-  themeToggle.textContent = isLuxury ? "Classic Mode" : "Luxury Mode";
-});
+renderApp();

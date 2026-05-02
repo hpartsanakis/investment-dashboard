@@ -20,13 +20,21 @@
 body {
   margin: 0;
   font-family: "Inter", sans-serif;
-  
+
   background:
-    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.04), transparent 40%),
-    radial-gradient(circle at 80% 30%, rgba(255, 255, 255, 0.03), transparent 40%),
+    radial-gradient(
+      circle at 20% 20%,
+      rgba(255, 255, 255, 0.04),
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 80% 30%,
+      rgba(255, 255, 255, 0.03),
+      transparent 40%
+    ),
     linear-gradient(135deg, #2b1f18 0%, #3a2a22 40%, #1c1410 100%);
-    color: #f5f5f5;
-    min-height: 100vh;
+  color: #f5f5f5;
+  min-height: 100vh;
 }
 
 .app-header {
@@ -80,15 +88,26 @@ body {
 
 body.luxury-mode {
   background:
-    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.05), transparent 34%),
-    radial-gradient(circle at 80% 30%, rgba(176, 141, 87, 0.12), transparent 36%),
+    radial-gradient(
+      circle at 20% 20%,
+      rgba(255, 255, 255, 0.05),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 80% 30%,
+      rgba(176, 141, 87, 0.12),
+      transparent 36%
+    ),
     linear-gradient(135deg, #21150f 0%, #3a261c 45%, #120c09 100%);
   color: #f7efe3;
 }
 
 body.luxury-mode .app-header {
-  background:
-    linear-gradient(135deg, rgba(18, 12, 9, 0.96), rgba(58, 38, 28, 0.94));
+  background: linear-gradient(
+    135deg,
+    rgba(18, 12, 9, 0.96),
+    rgba(58, 38, 28, 0.94)
+  );
 }
 
 body.luxury-mode .card {
@@ -116,9 +135,13 @@ body.luxury-mode tr:hover td {
 
 .card {
   background:
-  radial-gradient(circle at 30% 20%, rgba(255,255,255,0.05), transparent 30%),
-  radial-gradient(circle at 70% 60%, rgba(0,0,0,0.2), transparent 40%),
-  linear-gradient(135deg, #2a1c16, #3b2a23, #1a120f);
+    radial-gradient(
+      circle at 30% 20%,
+      rgba(255, 255, 255, 0.05),
+      transparent 30%
+    ),
+    radial-gradient(circle at 70% 60%, rgba(0, 0, 0, 0.2), transparent 40%),
+    linear-gradient(135deg, #2a1c16, #3b2a23, #1a120f);
   backdrop-filter: blur(18px);
   border: 1px solid var(--border);
   border-radius: 24px;
@@ -238,6 +261,7 @@ td {
   border-bottom: 1px solid #edf0f3;
   text-align: left;
   font-size: 14px;
+  color: var(--text);
 }
 
 th {
@@ -285,4 +309,19 @@ canvas {
   .stat-card strong {
     font-size: 26px;
   }
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.edit-btn {
+  background: linear-gradient(135deg, #b08d57, #7a5a2e);
+  padding: 9px 12px;
+  font-size: 13px;
+}
+
+.edit-btn:hover {
+  background: linear-gradient(135deg, #c9a96a, #8c6d3f);
 }
