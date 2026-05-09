@@ -3,15 +3,12 @@
 }
 
 :root {
-  --bg: #f3efe7;
-  --surface: rgba(255, 255, 255, 0.78);
   --surface-solid: #ffffff;
   --text: #1f2933;
   --muted: #6b7280;
-  --dark: #111827;
+  --dark: #727680;
   --border: rgba(31, 41, 55, 0.12);
   --gold: #b08d57;
-  --gold-dark: #8c6d3f;
   --green: #15803d;
   --red: #b91c1c;
   --shadow: 0 18px 45px rgba(17, 24, 39, 0.12);
@@ -21,8 +18,16 @@ body {
   margin: 0;
   font-family: "Inter", sans-serif;
   background:
-    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.04), transparent 40%),
-    radial-gradient(circle at 80% 30%, rgba(255, 255, 255, 0.03), transparent 40%),
+    radial-gradient(
+      circle at 20% 20%,
+      rgba(255, 255, 255, 0.04),
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 80% 30%,
+      rgba(255, 255, 255, 0.03),
+      transparent 40%
+    ),
     linear-gradient(135deg, #2b1f18 0%, #3a2a22 40%, #1c1410 100%);
   color: var(--text);
   min-height: 100vh;
@@ -30,12 +35,14 @@ body {
 
 .app-header {
   position: relative;
-  background:
-    linear-gradient(135deg, rgba(17, 24, 39, 0.96), rgba(42, 37, 31, 0.94));
+  background: linear-gradient(
+    135deg,
+    rgba(17, 24, 39, 0.96),
+    rgba(42, 37, 31, 0.94)
+  );
   color: white;
   padding: 54px 20px 62px;
   text-align: center;
-  overflow: hidden;
 }
 
 .app-header::after {
@@ -47,7 +54,6 @@ body {
 }
 
 .app-header h1 {
-  position: relative;
   margin: 0 0 10px;
   font-family: "Playfair Display", serif;
   font-size: clamp(36px, 5vw, 58px);
@@ -56,11 +62,9 @@ body {
 }
 
 .app-header p {
-  position: relative;
   margin: 0;
   color: #e5e7eb;
   font-size: 16px;
-  letter-spacing: 0.3px;
 }
 
 .theme-toggle {
@@ -95,7 +99,6 @@ body {
   margin: 0 0 18px;
   font-family: "Playfair Display", serif;
   font-size: 24px;
-  font-weight: 600;
   color: var(--dark);
 }
 
@@ -128,7 +131,6 @@ body {
 .stat-card strong {
   font-size: 30px;
   font-weight: 600;
-  letter-spacing: -0.5px;
 }
 
 .form-grid {
@@ -153,7 +155,6 @@ select {
   background: rgba(255, 255, 255, 0.9);
   color: var(--text);
   outline: none;
-  transition: 0.2s ease;
 }
 
 input:focus,
@@ -168,8 +169,6 @@ button {
   border: none;
   cursor: pointer;
   font-weight: 700;
-  letter-spacing: 0.2px;
-  transition: 0.2s ease;
 }
 
 button:hover {
@@ -203,7 +202,7 @@ button:hover {
 
 table {
   width: 100%;
-  min-width: 980px;
+  min-width: 1050px;
   border-collapse: collapse;
   background: var(--surface-solid);
 }
@@ -244,14 +243,25 @@ canvas {
 
 body.luxury-mode {
   background:
-    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.05), transparent 34%),
-    radial-gradient(circle at 80% 30%, rgba(176, 141, 87, 0.12), transparent 36%),
+    radial-gradient(
+      circle at 20% 20%,
+      rgba(255, 255, 255, 0.05),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 80% 30%,
+      rgba(176, 141, 87, 0.12),
+      transparent 36%
+    ),
     linear-gradient(135deg, #21150f 0%, #3a261c 45%, #120c09 100%);
 }
 
 body.luxury-mode .app-header {
-  background:
-    linear-gradient(135deg, rgba(18, 12, 9, 0.96), rgba(58, 38, 28, 0.94));
+  background: linear-gradient(
+    135deg,
+    rgba(18, 12, 9, 0.96),
+    rgba(58, 38, 28, 0.94)
+  );
 }
 
 body.luxury-mode .card {

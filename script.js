@@ -1,20 +1,16 @@
 let assets = JSON.parse(localStorage.getItem("assets")) || [];
 let investments = JSON.parse(localStorage.getItem("investments")) || [];
-let snapshots = JSON.parse(localStorage.getItem("snapshots")) || [];
 
 let editingAssetId = null;
 let editingInvestmentId = null;
-let editingSnapshotId = null;
 
 const assetForm = document.getElementById("assetForm");
 const investmentForm = document.getElementById("investmentForm");
-const valueUpdateForm = document.getElementById("valueUpdateForm");
 
 const assetsTable = document.getElementById("assetsTable");
 const investmentsTable = document.getElementById("investmentsTable");
 
 const investmentAsset = document.getElementById("investmentAsset");
-const valueAsset = document.getElementById("valueAsset");
 
 const totalInvestedEl = document.getElementById("totalInvested");
 const totalValueEl = document.getElementById("totalValue");
@@ -24,63 +20,92 @@ const totalReturnEl = document.getElementById("totalReturn");
 const themeToggle = document.getElementById("themeToggle");
 
 let allocationChart;
-let growthChart;
 let investedChart;
 let profitChart;
+let valueChart;
+
+function round(value, decimals = 4) {
+  return Number(Math.round(value + "e" + decimals) + "e-" + decimals);
+}
 
 function saveData() {
   localStorage.setItem("assets", JSON.stringify(assets));
   localStorage.setItem("investments", JSON.stringify(investments));
-  localStorage.setItem("snapshots", JSON.stringify(snapshots));
+}
+
+function round(value, decimals = 4) {
+  return Number(Number(value).toFixed(decimals));
 }
 
 function formatEuro(value) {
   return new Intl.NumberFormat("de-DE", {
     style: "currency",
-    currency: "EUR"
-  }).format(value || 0);
+    currency: "EUR",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 4,
+  }).format(Number(value) || 0);
+}
+
+function formatNumber(value) {
+  return new Intl.NumberFormat("de-DE", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 4,
+  }).format(Number(value) || 0);
 }
 
 function getAssetById(id) {
-  return assets.find(asset => asset.id === id);
+  return assets.find((asset) => asset.id === id);
+}
+
+function calculateInvestment(amount, buyPrice, currentPrice) {
+  const units = buyPrice > 0 ? round(amount / buyPrice) : 0;
+  const currentValue = round(units * currentPrice);
+  const profit = round(currentValue - amount);
+  const returnPercent = amount > 0 ? round((profit / amount) * 100) : 0;
+
+  return {
+    units,
+    currentValue,
+    profit,
+    returnPercent,
+  };
+}
+
+function getAssetInvestments(assetId) {
+  return investments.filter((inv) => inv.assetId === assetId);
 }
 
 function getAssetValue(assetId) {
-  const assetSnapshots = snapshots
-    .filter(snapshot => snapshot.assetId === assetId)
-    .sort((a, b) => new Date(b.date) - new Date(a.date));
+  return getAssetInvestments(assetId).reduce((sum, inv) => {
+    return sum + (Number(inv.currentValue) || 0);
+  }, 0);
+}
 
-  if (assetSnapshots.length > 0) {
-    return assetSnapshots[0].value;
-  }
-
-  return investments
-    .filter(inv => inv.assetId === assetId)
-    .reduce((sum, inv) => sum + inv.currentValue, 0);
+function getAssetInvested(assetId) {
+  return getAssetInvestments(assetId).reduce((sum, inv) => {
+    return sum + (Number(inv.amount) || 0);
+  }, 0);
 }
 
 function getTotalInvested() {
-  return investments.reduce((sum, inv) => sum + inv.amount, 0);
+  return investments.reduce((sum, inv) => sum + (Number(inv.amount) || 0), 0);
 }
 
 function getTotalValue() {
-  return assets.reduce((sum, asset) => sum + getAssetValue(asset.id), 0);
+  return investments.reduce(
+    (sum, inv) => sum + (Number(inv.currentValue) || 0),
+    0,
+  );
 }
 
 function renderAssetOptions() {
   investmentAsset.innerHTML = `<option value="">Select asset</option>`;
-  valueAsset.innerHTML = `<option value="">Select asset</option>`;
 
-  assets.forEach(asset => {
-    const option1 = document.createElement("option");
-    option1.value = asset.id;
-    option1.textContent = asset.name;
-    investmentAsset.appendChild(option1);
-
-    const option2 = document.createElement("option");
-    option2.value = asset.id;
-    option2.textContent = asset.name;
-    valueAsset.appendChild(option2);
+  assets.forEach((asset) => {
+    const option = document.createElement("option");
+    option.value = asset.id;
+    option.textContent = asset.name;
+    investmentAsset.appendChild(option);
   });
 }
 
@@ -89,7 +114,7 @@ function renderAssets() {
 
   const totalValue = getTotalValue();
 
-  assets.forEach(asset => {
+  assets.forEach((asset) => {
     const value = getAssetValue(asset.id);
     const allocation = totalValue > 0 ? (value / totalValue) * 100 : 0;
 
@@ -101,10 +126,9 @@ function renderAssets() {
       <td>${asset.isin}</td>
       <td>${asset.ticker || "-"}</td>
       <td>${formatEuro(value)}</td>
-      <td>${allocation.toFixed(2)}%</td>
+      <td>${formatNumber(allocation)}%</td>
       <td class="action-buttons">
-        <button class="edit-btn" onclick="editAsset('${asset.id}')">Edit Asset</button>
-        <button class="edit-btn" onclick="editLatestSnapshot('${asset.id}')">Edit Value</button>
+        <button class="edit-btn" onclick="editAsset('${asset.id}')">Edit</button>
         <button class="delete-btn" onclick="deleteAsset('${asset.id}')">Delete</button>
       </td>
     `;
@@ -116,21 +140,35 @@ function renderAssets() {
 function renderInvestments() {
   investmentsTable.innerHTML = "";
 
-  investments.forEach(inv => {
+  investments.forEach((inv) => {
     const asset = getAssetById(inv.assetId);
-    const profit = inv.currentValue - inv.amount;
-    const profitClass = profit >= 0 ? "positive" : "negative";
+
+    const amount = Number(inv.amount) || 0;
+    const buyPrice = Number(inv.buyPrice) || 0;
+    const currentPrice = Number(inv.currentPrice) || 0;
+
+    const calculated = calculateInvestment(amount, buyPrice, currentPrice);
+
+    inv.units = calculated.units;
+    inv.currentValue = calculated.currentValue;
+    inv.profit = calculated.profit;
+    inv.returnPercent = calculated.returnPercent;
+
+    const profitClass = inv.profit >= 0 ? "positive" : "negative";
 
     const tr = document.createElement("tr");
 
     tr.innerHTML = `
-      <td>${inv.date}</td>
+      <td>${inv.date || "-"}</td>
       <td>${asset ? asset.name : "Unknown asset"}</td>
       <td>${formatEuro(inv.amount)}</td>
-      <td>${inv.units ? inv.units.toFixed(4) : "-"}</td>
-      <td>${inv.buyPrice ? formatEuro(inv.buyPrice) : "-"}</td>
+      <td>${formatNumber(inv.units)}</td>
+      <td>${formatEuro(inv.buyPrice)}</td>
+      <td>${formatEuro(inv.currentPrice)}</td>
       <td>${formatEuro(inv.currentValue)}</td>
-      <td class="${profitClass}">${formatEuro(profit)}</td>
+      <td class="${profitClass}">
+        ${formatEuro(inv.profit)} / ${formatNumber(inv.returnPercent)}%
+      </td>
       <td class="action-buttons">
         <button class="edit-btn" onclick="editInvestment('${inv.id}')">Edit</button>
         <button class="delete-btn" onclick="deleteInvestment('${inv.id}')">Delete</button>
@@ -139,6 +177,8 @@ function renderInvestments() {
 
     investmentsTable.appendChild(tr);
   });
+
+  saveData();
 }
 
 function renderOverview() {
@@ -150,100 +190,32 @@ function renderOverview() {
   totalInvestedEl.textContent = formatEuro(totalInvested);
   totalValueEl.textContent = formatEuro(totalValue);
   totalProfitEl.textContent = formatEuro(profit);
-  totalReturnEl.textContent = `${returnPercent.toFixed(2)}%`;
+  totalReturnEl.textContent = `${formatNumber(returnPercent)}%`;
 
   totalProfitEl.className = profit >= 0 ? "positive" : "negative";
   totalReturnEl.className = profit >= 0 ? "positive" : "negative";
 }
 
 function renderAllocationChart() {
-  const labels = assets.map(asset => asset.name);
-  const data = assets.map(asset => getAssetValue(asset.id));
-
+  const labels = assets.map((asset) => asset.name);
+  const data = assets.map((asset) => getAssetValue(asset.id));
   const ctx = document.getElementById("allocationChart");
 
-  if (allocationChart) {
-    allocationChart.destroy();
-  }
+  if (allocationChart) allocationChart.destroy();
 
   allocationChart = new Chart(ctx, {
     type: "doughnut",
     data: {
       labels,
-      datasets: [{ data }]
-    }
-  });
-}
-
-function getPortfolioValueByDate(date) {
-  let total = 0;
-
-  assets.forEach(asset => {
-    const latestSnapshot = snapshots
-      .filter(snapshot => snapshot.assetId === asset.id && snapshot.date <= date)
-      .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
-
-    if (latestSnapshot) {
-      total += latestSnapshot.value;
-    } else {
-      total += investments
-        .filter(inv => inv.assetId === asset.id && inv.date <= date)
-        .reduce((sum, inv) => sum + inv.currentValue, 0);
-    }
-  });
-
-  return total;
-}
-
-function getInvestedByDate(date) {
-  return investments
-    .filter(inv => inv.date <= date)
-    .reduce((sum, inv) => sum + inv.amount, 0);
-}
-
-function getTrackingDates() {
-  const dates = [
-    ...investments.map(inv => inv.date),
-    ...snapshots.map(snapshot => snapshot.date)
-  ];
-
-  return [...new Set(dates)].sort();
-}
-
-function renderGrowthChart() {
-  const labels = getTrackingDates();
-  const data = labels.map(date => getPortfolioValueByDate(date));
-
-  const ctx = document.getElementById("growthChart");
-
-  if (growthChart) {
-    growthChart.destroy();
-  }
-
-  growthChart = new Chart(ctx, {
-    type: "line",
-    data: {
-      labels,
-      datasets: [
-        {
-          label: "Portfolio Value",
-          data,
-          tension: 0.3
-        }
-      ]
-    }
+      datasets: [{ data }],
+    },
   });
 }
 
 function renderInvestedChart() {
-  const invested = getTotalInvested();
-  const currentValue = getTotalValue();
-
   const ctx = document.getElementById("investedChart");
 
-  if (investedChart) {
-    investedChart.destroy();
-  }
+  if (investedChart) investedChart.destroy();
 
   investedChart = new Chart(ctx, {
     type: "bar",
@@ -252,40 +224,57 @@ function renderInvestedChart() {
       datasets: [
         {
           label: "€",
-          data: [invested, currentValue]
-        }
-      ]
-    }
+          data: [getTotalInvested(), getTotalValue()],
+        },
+      ],
+    },
   });
 }
 
 function renderProfitChart() {
-  const labels = getTrackingDates();
+  const labels = assets.map((asset) => asset.name);
 
-  const data = labels.map(date => {
-    const value = getPortfolioValueByDate(date);
-    const invested = getInvestedByDate(date);
-    return value - invested;
+  const data = assets.map((asset) => {
+    return getAssetValue(asset.id) - getAssetInvested(asset.id);
   });
 
   const ctx = document.getElementById("profitChart");
 
-  if (profitChart) {
-    profitChart.destroy();
-  }
+  if (profitChart) profitChart.destroy();
 
   profitChart = new Chart(ctx, {
-    type: "line",
+    type: "bar",
     data: {
       labels,
       datasets: [
         {
           label: "Profit / Loss",
           data,
-          tension: 0.3
-        }
-      ]
-    }
+        },
+      ],
+    },
+  });
+}
+
+function renderValueChart() {
+  const labels = assets.map((asset) => asset.name);
+  const data = assets.map((asset) => getAssetValue(asset.id));
+  const ctx = document.getElementById("valueChart");
+
+  if (valueChart) valueChart.destroy();
+
+  valueChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "Current Value",
+          data,
+          tension: 0.3,
+        },
+      ],
+    },
   });
 }
 
@@ -295,9 +284,9 @@ function renderApp() {
   renderInvestments();
   renderOverview();
   renderAllocationChart();
-  renderGrowthChart();
   renderInvestedChart();
   renderProfitChart();
+  renderValueChart();
 }
 
 assetForm.addEventListener("submit", function (e) {
@@ -307,12 +296,12 @@ assetForm.addEventListener("submit", function (e) {
     name: document.getElementById("assetName").value.trim(),
     wkn: document.getElementById("assetWkn").value.trim(),
     isin: document.getElementById("assetIsin").value.trim(),
-    ticker: document.getElementById("assetTicker").value.trim()
+    ticker: document.getElementById("assetTicker").value.trim(),
   };
 
   if (editingAssetId) {
-    assets = assets.map(asset =>
-      asset.id === editingAssetId ? { ...asset, ...assetData } : asset
+    assets = assets.map((asset) =>
+      asset.id === editingAssetId ? { ...asset, ...assetData } : asset,
     );
 
     editingAssetId = null;
@@ -320,7 +309,7 @@ assetForm.addEventListener("submit", function (e) {
   } else {
     assets.push({
       id: crypto.randomUUID(),
-      ...assetData
+      ...assetData,
     });
   }
 
@@ -345,9 +334,8 @@ function editAsset(id) {
 }
 
 function deleteAsset(id) {
-  assets = assets.filter(asset => asset.id !== id);
-  investments = investments.filter(inv => inv.assetId !== id);
-  snapshots = snapshots.filter(snapshot => snapshot.assetId !== id);
+  assets = assets.filter((asset) => asset.id !== id);
+  investments = investments.filter((inv) => inv.assetId !== id);
 
   saveData();
   renderApp();
@@ -358,21 +346,27 @@ investmentForm.addEventListener("submit", function (e) {
 
   const amount = Number(document.getElementById("investmentAmount").value);
   const buyPrice = Number(document.getElementById("investmentBuyPrice").value);
-  const currentValue = Number(document.getElementById("investmentCurrentValue").value);
-  const units = amount / buyPrice;
+  const currentPrice = Number(
+    document.getElementById("investmentCurrentPrice").value,
+  );
+
+  const calculated = calculateInvestment(amount, buyPrice, currentPrice);
 
   const investmentData = {
     assetId: investmentAsset.value,
     amount,
     buyPrice,
-    units,
-    currentValue,
-    date: document.getElementById("investmentDate").value
+    currentPrice,
+    units: calculated.units,
+    currentValue: calculated.currentValue,
+    profit: calculated.profit,
+    returnPercent: calculated.returnPercent,
+    date: document.getElementById("investmentDate").value,
   };
 
   if (editingInvestmentId) {
-    investments = investments.map(inv =>
-      inv.id === editingInvestmentId ? { ...inv, ...investmentData } : inv
+    investments = investments.map((inv) =>
+      inv.id === editingInvestmentId ? { ...inv, ...investmentData } : inv,
     );
 
     editingInvestmentId = null;
@@ -380,14 +374,7 @@ investmentForm.addEventListener("submit", function (e) {
   } else {
     investments.push({
       id: crypto.randomUUID(),
-      ...investmentData
-    });
-
-    snapshots.push({
-      id: crypto.randomUUID(),
-      assetId: investmentData.assetId,
-      value: investmentData.currentValue,
-      date: investmentData.date
+      ...investmentData,
     });
   }
 
@@ -397,15 +384,15 @@ investmentForm.addEventListener("submit", function (e) {
 });
 
 function editInvestment(id) {
-  const inv = investments.find(item => item.id === id);
+  const inv = investments.find((item) => item.id === id);
   if (!inv) return;
 
   editingInvestmentId = id;
 
   investmentAsset.value = inv.assetId;
   document.getElementById("investmentAmount").value = inv.amount;
-  document.getElementById("investmentBuyPrice").value = inv.buyPrice || "";
-  document.getElementById("investmentCurrentValue").value = inv.currentValue;
+  document.getElementById("investmentBuyPrice").value = inv.buyPrice;
+  document.getElementById("investmentCurrentPrice").value = inv.currentPrice;
   document.getElementById("investmentDate").value = inv.date;
 
   investmentForm.querySelector("button").textContent = "Update Investment";
@@ -413,71 +400,32 @@ function editInvestment(id) {
 }
 
 function deleteInvestment(id) {
-  investments = investments.filter(inv => inv.id !== id);
+  investments = investments.filter((inv) => inv.id !== id);
 
   saveData();
   renderApp();
 }
 
-valueUpdateForm.addEventListener("submit", function (e) {
-  e.preventDefault();
+if (themeToggle) {
+  const savedTheme = localStorage.getItem("theme");
 
-  const snapshotData = {
-    assetId: valueAsset.value,
-    value: Number(document.getElementById("newCurrentValue").value),
-    date: document.getElementById("valueDate").value
-  };
-
-  if (editingSnapshotId) {
-    snapshots = snapshots.map(snapshot =>
-      snapshot.id === editingSnapshotId ? { ...snapshot, ...snapshotData } : snapshot
-    );
-
-    editingSnapshotId = null;
-    valueUpdateForm.querySelector("button").textContent = "Save Snapshot";
-  } else {
-    snapshots.push({
-      id: crypto.randomUUID(),
-      ...snapshotData
-    });
+  if (savedTheme === "luxury") {
+    document.body.classList.add("luxury-mode");
+    themeToggle.textContent = "Classic Mode";
   }
 
-  saveData();
-  valueUpdateForm.reset();
-  renderApp();
-});
+  themeToggle.addEventListener("click", function () {
+    document.body.classList.toggle("luxury-mode");
 
-function editLatestSnapshot(assetId) {
-  const latestSnapshot = snapshots
-    .filter(snapshot => snapshot.assetId === assetId)
-    .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+    const isLuxury = document.body.classList.contains("luxury-mode");
 
-  if (!latestSnapshot) return;
-
-  editingSnapshotId = latestSnapshot.id;
-
-  valueAsset.value = latestSnapshot.assetId;
-  document.getElementById("newCurrentValue").value = latestSnapshot.value;
-  document.getElementById("valueDate").value = latestSnapshot.date;
-
-  valueUpdateForm.querySelector("button").textContent = "Update Snapshot";
-  window.scrollTo({ top: valueUpdateForm.offsetTop - 120, behavior: "smooth" });
+    localStorage.setItem("theme", isLuxury ? "luxury" : "classic");
+    themeToggle.textContent = isLuxury ? "Classic Mode" : "Luxury Mode";
+  });
 }
-
-const savedTheme = localStorage.getItem("theme");
-
-if (savedTheme === "luxury") {
-  document.body.classList.add("luxury-mode");
-  themeToggle.textContent = "Classic Mode";
-}
-
-themeToggle.addEventListener("click", function () {
-  document.body.classList.toggle("luxury-mode");
-
-  const isLuxury = document.body.classList.contains("luxury-mode");
-
-  localStorage.setItem("theme", isLuxury ? "luxury" : "classic");
-  themeToggle.textContent = isLuxury ? "Classic Mode" : "Luxury Mode";
-});
 
 renderApp();
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./sw.js");
+}
