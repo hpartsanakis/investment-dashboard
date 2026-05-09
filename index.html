@@ -1,177 +1,170 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="de">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>Investment Dashboard</title>
+  <title>Investment Dashboard</title>
 
-    <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#05164d" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
 
-    <link rel="stylesheet" href="style.css" />
-    <link rel="manifeest" href="manifest.json" />
-    <meta name="theme-color" content="#05164d" />
-    <link rel="apple-touch-icon" href="icons/icon-192.png" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta
-      name="apple-mobile-web-app-status-bar-style"
-      content="black-translucent"
-    />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  </head>
+  <link rel="stylesheet" href="style.css" />
+</head>
 
-  <body>
+<body>
+  <main class="app">
     <header class="app-header">
-      <h1>Investment Dashboard</h1>
-      <p>Real portfolio tracking with automatic unit calculation</p>
-
-      <button id="themeToggle" class="theme-toggle" type="button">
-        Luxury Mode
-      </button>
+      <div>
+        <p class="eyebrow">Cloud Investment App</p>
+        <h1>Investment Dashboard</h1>
+        <p>Assets, Investments, Stückzahlen und Portfolio-Wert verwalten.</p>
+      </div>
     </header>
 
-    <main class="container">
-      <section class="overview-grid">
-        <div class="card stat-card">
-          <span>Total Invested</span>
-          <strong id="totalInvested">0€</strong>
-        </div>
+    <section class="summary-grid">
+      <article class="summary-card">
+        <span>Investiert</span>
+        <strong id="total-invested">0,00 €</strong>
+      </article>
 
-        <div class="card stat-card">
-          <span>Total Current Value</span>
-          <strong id="totalValue">0€</strong>
-        </div>
+      <article class="summary-card">
+        <span>Aktueller Wert</span>
+        <strong id="total-current-value">0,00 €</strong>
+      </article>
 
-        <div class="card stat-card">
-          <span>Profit / Loss</span>
-          <strong id="totalProfit">0€</strong>
-        </div>
+      <article class="summary-card">
+        <span>Gewinn / Verlust</span>
+        <strong id="total-profit-loss">0,00 €</strong>
+      </article>
 
-        <div class="card stat-card">
-          <span>Return</span>
-          <strong id="totalReturn">0%</strong>
-        </div>
-      </section>
+      <article class="summary-card">
+        <span>Rendite</span>
+        <strong id="total-performance">0,00 %</strong>
+      </article>
+    </section>
 
-      <section class="card">
-        <h2>Add Asset</h2>
+    <section class="grid-2">
+      <article class="card">
+        <h2 id="asset-form-title">Asset hinzufügen</h2>
 
-        <form id="assetForm" class="form-grid">
-          <input id="assetName" type="text" placeholder="Name" required />
-          <input id="assetWkn" type="text" placeholder="WKN" />
-          <input id="assetIsin" type="text" placeholder="ISIN" required />
-          <input id="assetTicker" type="text" placeholder="Ticker" />
-          <button type="submit">Save Asset</button>
+        <form id="asset-form" class="form">
+          <input type="hidden" id="asset-edit-id" />
+
+          <div class="form-group">
+            <label for="asset-name">Name</label>
+            <input id="asset-name" type="text" required />
+          </div>
+
+          <div class="form-group">
+            <label for="asset-wkn">WKN</label>
+            <input id="asset-wkn" type="text" required />
+          </div>
+
+          <div class="form-group">
+            <label for="asset-isin">ISIN</label>
+            <input id="asset-isin" type="text" required />
+          </div>
+
+          <div class="form-group">
+            <label for="asset-ticker">Ticker</label>
+            <input id="asset-ticker" type="text" required />
+          </div>
+
+          <button id="asset-submit-btn" type="submit">Asset speichern</button>
+          <button id="asset-cancel-btn" type="button" hidden>Bearbeitung abbrechen</button>
         </form>
-      </section>
+      </article>
 
-      <section class="card">
-        <h2>Assets</h2>
+      <article class="card">
+        <h2 id="investment-form-title">Investment hinzufügen</h2>
 
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>WKN</th>
-                <th>ISIN</th>
-                <th>Ticker</th>
-                <th>Value</th>
-                <th>Allocation</th>
-                <th>Action</th>
-              </tr>
-            </thead>
+        <form id="investment-form" class="form">
+          <input type="hidden" id="investment-edit-id" />
 
-            <tbody id="assetsTable"></tbody>
-          </table>
-        </div>
-      </section>
+          <div class="form-group">
+            <label for="investment-asset">Asset</label>
+            <select id="investment-asset" required>
+              <option value="">Asset auswählen</option>
+            </select>
+          </div>
 
-      <section class="card">
-        <h2>Add Investment</h2>
+          <div class="form-group">
+            <label for="investment-date">Kaufdatum</label>
+            <input id="investment-date" type="date" required />
+          </div>
 
-        <form id="investmentForm" class="form-grid">
-          <select id="investmentAsset" required>
-            <option value="">Select asset</option>
-          </select>
+          <div class="form-group">
+            <label for="investment-amount">Einzahlung (€)</label>
+            <input id="investment-amount" type="number" step="0.0001" min="0" required />
+          </div>
 
-          <input
-            id="investmentAmount"
-            type="number"
-            step="0.00001"
-            placeholder="Investment Amount €"
-            required
-          />
-          <input
-            id="investmentBuyPrice"
-            type="number"
-            step="0.00001"
-            placeholder="Buy Price €/Stück"
-            required
-          />
-          <input
-            id="investmentCurrentPrice"
-            type="number"
-            step="0.00001"
-            placeholder="Current Price €/Stück"
-            required
-          />
-          <input id="investmentDate" type="date" required />
+          <div class="form-group">
+            <label for="investment-buy-price">Kaufpreis pro Stück (€)</label>
+            <input id="investment-buy-price" type="number" step="0.0001" min="0" required />
+          </div>
 
-          <button type="submit">Add Investment</button>
+          <div class="form-group">
+            <label for="investment-current-price">Aktueller Preis pro Stück (€)</label>
+            <input id="investment-current-price" type="number" step="0.0001" min="0" required />
+          </div>
+
+          <button id="investment-submit-btn" type="submit">Investment speichern</button>
+          <button id="investment-cancel-btn" type="button" hidden>Bearbeitung abbrechen</button>
         </form>
-      </section>
+      </article>
+    </section>
 
-      <section class="card">
-        <h2>Investments</h2>
+    <section class="card">
+      <h2>Gespeicherte Assets</h2>
 
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Asset</th>
-                <th>Invested</th>
-                <th>Units</th>
-                <th>Buy Price</th>
-                <th>Current Price</th>
-                <th>Current Value</th>
-                <th>Profit / Loss</th>
-                <th>Action</th>
-              </tr>
-            </thead>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>WKN</th>
+              <th>ISIN</th>
+              <th>Ticker</th>
+              <th>Erstellt</th>
+              <th>Aktionen</th>
+            </tr>
+          </thead>
+          <tbody id="assets-table-body"></tbody>
+        </table>
+      </div>
+    </section>
 
-            <tbody id="investmentsTable"></tbody>
-          </table>
-        </div>
-      </section>
+    <section class="card">
+      <h2>Meine Investments</h2>
 
-      <section class="charts-grid">
-        <div class="card">
-          <h2>Allocation</h2>
-          <canvas id="allocationChart"></canvas>
-        </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Datum</th>
+              <th>Asset</th>
+              <th>Einzahlung</th>
+              <th>Kaufpreis</th>
+              <th>Stückzahl</th>
+              <th>Aktueller Preis</th>
+              <th>Aktueller Wert</th>
+              <th>Gewinn / Verlust</th>
+              <th>Bewegung</th>
+              <th>Aktionen</th>
+            </tr>
+          </thead>
+          <tbody id="investments-table-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
 
-        <div class="card">
-          <h2>Invested vs Current Value</h2>
-          <canvas id="investedChart"></canvas>
-        </div>
-
-        <div class="card">
-          <h2>Profit / Loss by Asset</h2>
-          <canvas id="profitChart"></canvas>
-        </div>
-
-        <div class="card">
-          <h2>Portfolio Value by Asset</h2>
-          <canvas id="valueChart"></canvas>
-        </div>
-      </section>
-    </main>
-
-    <script src="script.js"></script>
-  </body>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="script.js"></script>
+</body>
 </html>
